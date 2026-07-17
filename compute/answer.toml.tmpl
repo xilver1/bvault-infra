@@ -1,0 +1,27 @@
+[global]
+keyboard = "es"
+country = "es"
+fqdn = "pve.power.house"
+mailto = "mail@no.invalid"
+timezone = "Europe/Madrid"
+root-password-hashed = '${ADMIN_PASSWORD_HASHED}'
+root-ssh-keys = [
+    '${CI_SSH_PUBKEY}','${ADMIN_SSH_PUBKEY}'
+]
+
+[network]
+source = "from-answer"
+cidr = "192.168.0.190/24"
+dns = "1.1.1.1"
+gateway = "192.168.0.1"
+filter.ID_NET_NAME_MAC = "*d8bbc18979a4"
+
+[network.interface-name-pinning]
+enabled = true
+
+[network.interface-name-pinning.mapping]
+"d8:bb:c1:89:79:a4" = "nic0"
+
+[disk-setup]
+filesystem = "ext4"
+disk-list = ["nvme0n1"]

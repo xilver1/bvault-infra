@@ -1,0 +1,128 @@
+#_preseed_V1
+# Tailscale subnet router - Debian 13 (trixie)
+#
+# Render with envsubst
+#
+#   envsubst '$ADMIN_PASSWORD_HASH $ADMIN_SSH_PUBKEY $CI_SSH_PUBKEY $TS_AUTHKEY' \
+#     < bastion-preseed.cfg.tmpl > preseed.cfg
+#
+# Do NOT commit the rendered output: it contains TS_AUTHKEY and ADMIN_PASSWORD_HASH.
+
+### Localization
+d-i debian-installer/locale string en_US.UTF-8
+d-i keyboard-configuration/xkb-keymap select es
+
+### Network - static, no DHCP lease games for an infra box
+# Must sit OUTSIDE the ISP router's DHCP pool or you will get an address conflict.
+d-i netcfg/choose_interface select auto
+d-i netcfg/disable_autoconfig boolean true
+d-i netcfg/get_ipaddress string 192.168.0.191
+d-i netcfg/get_netmask string 255.255.255.0
+d-i netcfg/get_gateway string 192.168.0.1
+d-i netcfg/get_nameservers string 192.168.0.1
+d-i netcfg/confirm_static boolean true
+d-i netcfg/get_hostname string bastion
+d-i netcfg/get_domain string internal
+d-i netcfg/hostname string bastion
+d-i netcfg/wireless_wep string
+
+### Mirror
+d-i mirror/country string manual
+d-i mirror/http/hostname string deb.debian.org
+d-i mirror/http/directory string /debian
+d-i mirror/http/proxy string
+
+### Accounts - no root login, one sudo user, key-only
+d-i passwd/root-login boolean false
+d-i passwd/make-user boolean true
+d-i passwd/user-fullname string ansible
+d-i passwd/username string ansible
+d-i passwd/user-password-crypted password ${ADMIN_PASSWORD_HASH}
+d-i passwd/user-default-groups string sudo
+
+### Clock
+d-i clock-setup/utc boolean true
+d-i time/zone string Europe/Madrid
+d-i clock-setup/ntp boolean true
+
+### Partitioning - LVM, everything in one filesystem
+d-i partman-auto/method string lvm
+d-i partman-auto/disk string /dev/disk/by-id/ata-512GB_SSD_MP28B87204152
+d-i partman-auto-lvm/guided_size string max
+d-i partman-lvm/device_remove_lvm boolean true
+d-i partman-md/device_remove_md boolean true
+d-i partman-lvm/confirm boolean true
+d-i partman-lvm/confirm_nooverwrite boolean true
+d-i partman-auto/choose_recipe select atomic
+d-i partman-partitioning/confirm_write_new_label boolean true
+d-i partman/choose_partition select finish
+d-i partman/confirm boolean true
+d-i partman/confirm_nooverwrite boolean true
+
+### Apt
+d-i apt-setup/cdrom/set-first boolean false
+d-i apt-setup/non-free-firmware boolean true
+
+### Packages - headless only
+# python3 is the Ansible prerequisite - it copies a module in and runs it.
+tasksel tasksel/first multiselect standard, ssh-server
+d-i pkgsel/include string curl ca-certificates gnupg sudo python3
+d-i pkgsel/upgrade select full-upgrade
+popularity-contest popularity-contest/participate boolean false
+
+### Bootloader
+d-i grub-installer/only_debian boolean true
+d-i grub-installer/bootdev string default
+
+### Finish
+d-i finish-install/reboot_in_progress note
+
+### late_command
+# Runs once, at install. Not idempotent. Keep it small - anything that needs
+# reconciling belongs in a playbook, not here.
+#
+# tailscale up CANNOT run here: in-target chroots into /target where tailscaled
+# is not running. So: install the package, drop a first-boot oneshot, let systemd
+# do the up on the real running system.
+d-i preseed/late_command string \
+    in-target sh -c 'curl -fsSL https://pkgs.tailscale.com/stable/debian/trixie.noarmor.gpg -o /usr/share/keyrings/tailscale-archive-keyring.gpg'; \
+    in-target sh -c 'curl -fsSL https://pkgs.tailscale.com/stable/debian/trixie.tailscale-keyring.list -o /etc/apt/sources.list.d/tailscale.list'; \
+    in-target apt-get update; \
+    in-target apt-get install -y tailscale; \
+    \
+    printf 'net.ipv4.ip_forward = 1\nnet.ipv6.conf.all.forwarding = 1\n' > /target/etc/sysctl.d/99-tailscale.conf; \
+    \
+    mkdir -p /target/home/ansible/.ssh; \
+    printf '%s\n' '${ADMIN_SSH_PUBKEY}' > /target/home/ansible/.ssh/authorized_keys; \
+    printf '%s\n' '${CI_SSH_PUBKEY}' >> /target/home/ansible/.ssh/authorized_keys; \
+    in-target chown -R ansible:ansible /home/ansible/.ssh; \
+    in-target chmod 700 /home/ansible/.ssh; \
+    in-target chmod 600 /home/ansible/.ssh/authorized_keys; \
+    \
+    printf 'PasswordAuthentication no\nPermitRootLogin no\nKbdInteractiveAuthentication no\n' > /target/etc/ssh/sshd_config.d/10-hardening.conf; \
+    \
+    printf '%s\n' 'ansible ALL=(ALL) NOPASSWD:ALL' > /target/etc/sudoers.d/10-ansible; \
+    in-target chmod 440 /etc/sudoers.d/10-ansible; \
+    \
+    printf '%s\n' '${TS_AUTHKEY}' > /target/etc/tailscale-bootstrap.key; \
+    in-target chmod 600 /etc/tailscale-bootstrap.key; \
+    \
+    printf '%s\n' \
+      '[Unit]' \
+      'Description=Tailscale first-boot subnet router bootstrap' \
+      'After=network-online.target tailscaled.service' \
+      'Wants=network-online.target' \
+      'Requires=tailscaled.service' \
+      'ConditionPathExists=/etc/tailscale-bootstrap.key' \
+      '' \
+      '[Service]' \
+      'Type=oneshot' \
+      'RemainAfterExit=yes' \
+      'ExecStart=/bin/sh -c "/usr/bin/tailscale up --authkey=file:/etc/tailscale-bootstrap.key --advertise-routes=192.168.0.190/31,192.168.0.192/26 --accept-dns=false --hostname=bastion --ssh=false"' \
+      'ExecStartPost=/bin/rm -f /etc/tailscale-bootstrap.key' \
+      'ExecStartPost=/bin/systemctl disable tailscale-bootstrap.service' \
+      '' \
+      '[Install]' \
+      'WantedBy=multi-user.target' \
+      > /target/etc/systemd/system/tailscale-bootstrap.service; \
+    in-target systemctl enable tailscale-bootstrap.service

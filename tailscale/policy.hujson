@@ -1,0 +1,42 @@
+// Tailnet policy file for lab-infra.
+// Source of truth: this file in git. The admin console copy is the output.
+{
+	// Who may apply which tag. Not about access - see "grants" for that.
+	"tagOwners": {
+		"tag:ci":            ["autogroup:admin"],
+		"tag:subnet-router": ["autogroup:admin"],
+	},
+
+	// Routes advertised by a tag:subnet-router node are approved without a
+	// human clicking approve in the console. Both routes need an entry:
+	// approving one of two gives you a router that reaches half the lab.
+	//
+	// 192.168.0.190/31 -> .190-.191  (compute, bastion)
+	// 192.168.0.192/26 -> .192-.255  (media, k8s VMs)
+	"autoApprovers": {
+		"routes": {
+			"192.168.0.190/31": ["tag:subnet-router"],
+			"192.168.0.192/26": ["tag:subnet-router"],
+		},
+	},
+
+	"grants": [
+		// Me, from any of my devices: everything.
+		// This must exist before the allow-all rule is removed, or the next
+		// apply locks me out of my own tailnet.
+		{
+			"src": ["autogroup:member"],
+			"dst": ["*"],
+			"ip":  ["*"],
+		},
+
+		// CI: the lab block only, and only the two ports it actually uses.
+		// tcp:22   -> Ansible
+		// tcp:8006 -> Proxmox API, for Terraform
+		{
+			"src": ["tag:ci"],
+			"dst": ["192.168.0.190/31", "192.168.0.192/26"],
+			"ip":  ["tcp:22", "tcp:8006"],
+		},
+	],
+}
