@@ -1,0 +1,52 @@
+name: Sync Tailscale ACLs
+on:
+  push:
+    branches: [ "main" ]
+    paths: [ "tailscale/policy.hujson" ]
+  pull_request:
+    branches: [ "main" ]
+    paths: [ "tailscale/policy.hujson" ]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  acls:
+    runs-on: ubuntu-latest
+    environment: tailscale-acl
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::854469103070:role/lab-infra-acl
+          aws-region: us-east-1
+
+      - name: Load Tailscale OAuth creds from SSM
+        run: |
+          ID=$(aws ssm get-parameter --name /lab/tailscale/policy-oauth-client-id \
+                 --query Parameter.Value --output text)
+          SECRET=$(aws ssm get-parameter --name /lab/tailscale/policy-oauth-client-secret \
+                 --with-decryption --query Parameter.Value --output text)
+          echo "::add-mask::$SECRET"
+          echo "TS_OAUTH_ID=$ID" >> "$GITHUB_ENV"
+          echo "TS_OAUTH_SECRET=$SECRET" >> "$GITHUB_ENV"
+
+      - name: Test ACL
+        if: github.event_name == 'pull_request'
+        uses: tailscale/gitops-acl-action@v1
+        with:
+          oauth-client-id: ${{ env.TS_OAUTH_ID }}
+          oauth-secret: ${{ env.TS_OAUTH_SECRET }}
+          tailnet: xilver1.github
+          action: test
+
+      - name: Deploy ACL
+        if: github.event_name == 'push'
+        uses: tailscale/gitops-acl-action@v1
+        with:
+          oauth-client-id: ${{ env.TS_OAUTH_ID }}
+          oauth-secret: ${{ env.TS_OAUTH_SECRET }}
+          tailnet: xilver1.github
+          action: apply
