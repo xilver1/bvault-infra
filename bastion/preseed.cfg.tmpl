@@ -1,12 +1,5 @@
 #_preseed_V1
 # Tailscale subnet router - Debian 13 (trixie)
-#
-# Render with envsubst
-#
-#   envsubst '$ADMIN_PASSWORD_HASH $ADMIN_SSH_PUBKEY $CI_SSH_PUBKEY $TS_AUTHKEY' \
-#     < bastion-preseed.cfg.tmpl > preseed.cfg
-#
-# Do NOT commit the rendered output: it contains TS_AUTHKEY and ADMIN_PASSWORD_HASH.
 
 ### Localization
 d-i debian-installer/locale string en_US.UTF-8
