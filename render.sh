@@ -27,9 +27,12 @@ validate_param() {
 }
 
 export_ssm_params() {
-    export CI_SSH_PUBKEY=$(aws ssm get-parameter --name /lab/ci/ssh-public-key --query "Parameter.Value" --output text)
-    export ADMIN_SSH_PUBKEY=$(aws ssm get-parameter --name /lab/admin/admin-ssh-public-key --query "Parameter.Value" --output text)
-    export ADMIN_PASSWORD_HASH=$(aws ssm get-parameter --name "/lab/$1/password-hash" --query "Parameter.Value" --with-decryption --output text)
+    CI_SSH_PUBKEY=$(aws ssm get-parameter --name /lab/ci/ssh-public-key --query "Parameter.Value" --output text)
+    export CI_SSH_PUBKEY
+    ADMIN_SSH_PUBKEY=$(aws ssm get-parameter --name /lab/admin/admin-ssh-public-key --query "Parameter.Value" --output text)
+    export ADMIN_SSH_PUBKEY
+    ADMIN_PASSWORD_HASH=$(aws ssm get-parameter --name "/lab/$1/password-hash" --query "Parameter.Value" --with-decryption --output text)
+    export ${ADMIN_PASSWORD_HASH:-}
 }
 
 substitute_template_files() {
