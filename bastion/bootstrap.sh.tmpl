@@ -10,6 +10,7 @@ curl -fsSL https://pkgs.tailscale.com/stable/debian/trixie.noarmor.gpg \
     -o /usr/share/keyrings/tailscale-archive-keyring.gpg
 curl -fsSL https://pkgs.tailscale.com/stable/debian/trixie.tailscale-keyring.list \
     -o /etc/apt/sources.list.d/tailscale.list
+sed -i '/cdrom:/d' /etc/apt/sources.list
 apt-get update
 apt-get install -y tailscale
 
