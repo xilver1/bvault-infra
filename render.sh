@@ -45,7 +45,7 @@ substitute_template_files() {
             outs="bastion/preseed.cfg bastion/bootstrap.sh"
             ;;
         compute)
-            envsubst "$VARS" < compute/answer.toml.tmpl > "compute/answer.toml"
+            envsubst "$VARS" < compute/answer.toml.tmpl > "compute/proxmox-auto-install-assistant-docker/secrets/pve-1/answer.toml"
             outs="compute/answer.toml"
             ;;
     esac
