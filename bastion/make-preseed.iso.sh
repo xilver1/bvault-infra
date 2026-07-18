@@ -30,9 +30,9 @@ trap cleanup EXIT
 # --- sanity-check the preseed before baking it into an ISO -------------------
 # envsubst renders unset vars as empty strings without complaining. An install
 # that silently sets a blank password hash is worse than one that fails here.
-if grep -qE '\$\{?[A-Z_]+\}?' "$PRESEED"; then
+if grep -qE '\$\{[A-Z_][A-Z0-9_]+\}' "$PRESEED"; then
     echo "ERROR: unsubstituted variables remain in $PRESEED:"
-    grep -oE '\$\{?[A-Z_]+\}?' "$PRESEED" | sort -u
+    grep -oE '\$\{[A-Z_][A-Z0-9_]+\}' "$PRESEED" | sort -u
     exit 1
 fi
 for token in 'ssh-ed25519' 'tskey-auth' '$6$'; do
