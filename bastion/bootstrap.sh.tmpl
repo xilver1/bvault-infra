@@ -1,0 +1,75 @@
+#!/bin/sh
+# bootstrap.sh — bastion first-install provisioning.
+#
+# Runs ONCE, chrooted into the freshly installed system, from the preseed
+# late_command. It is a plain script instead of an inline late_command because
+# backslash-continued late_command lines in an initrd preseed are fragile: one
+# stray space after a backslash silently truncates the whole chain.
+#
+# Rendered by render.sh (envsubst): ADMIN_SSH_PUBKEY, CI_SSH_PUBKEY, TS_AUTHKEY.
+# ADMIN_USER is hardcoded to 'ansible' to match the preseed.
+#
+# Because late_command runs this via `in-target`, we are ALREADY inside the
+# target root. No /target prefix, no in-target here. Paths are absolute in the
+# installed system.
+
+set -eu
+
+ADMIN_USER=ansible
+
+### --- Tailscale package -----------------------------------------------------
+curl -fsSL https://pkgs.tailscale.com/stable/debian/trixie.noarmor.gpg \
+    -o /usr/share/keyrings/tailscale-archive-keyring.gpg
+curl -fsSL https://pkgs.tailscale.com/stable/debian/trixie.tailscale-keyring.list \
+    -o /etc/apt/sources.list.d/tailscale.list
+apt-get update
+apt-get install -y tailscale
+
+### --- IP forwarding (required for a subnet router) --------------------------
+printf 'net.ipv4.ip_forward = 1\nnet.ipv6.conf.all.forwarding = 1\n' \
+    > /etc/sysctl.d/99-tailscale.conf
+
+### --- SSH keys --------------------------------------------------------------
+mkdir -p /home/${ADMIN_USER}/.ssh
+printf '%s\n' '${ADMIN_SSH_PUBKEY}'  > /home/${ADMIN_USER}/.ssh/authorized_keys
+printf '%s\n' '${CI_SSH_PUBKEY}'    >> /home/${ADMIN_USER}/.ssh/authorized_keys
+chown -R ${ADMIN_USER}:${ADMIN_USER} /home/${ADMIN_USER}/.ssh
+chmod 700 /home/${ADMIN_USER}/.ssh
+chmod 600 /home/${ADMIN_USER}/.ssh/authorized_keys
+
+### --- SSH hardening ---------------------------------------------------------
+printf 'PasswordAuthentication no\nPermitRootLogin no\nKbdInteractiveAuthentication no\n' \
+    > /etc/ssh/sshd_config.d/10-hardening.conf
+
+### --- passwordless sudo for the ansible user --------------------------------
+printf '%s\n' "${ADMIN_USER} ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/10-${ADMIN_USER}
+chmod 440 /etc/sudoers.d/10-${ADMIN_USER}
+
+### --- Tailscale auth key for the first-boot oneshot -------------------------
+# tailscale up CANNOT run here: tailscaled is not running inside the d-i chroot.
+# Stash the key and let a first-boot systemd oneshot bring the tunnel up on the
+# real running system.
+printf '%s\n' '${TS_AUTHKEY}' > /etc/tailscale-bootstrap.key
+chmod 600 /etc/tailscale-bootstrap.key
+
+### --- first-boot oneshot ----------------------------------------------------
+cat > /etc/systemd/system/tailscale-bootstrap.service <<'UNIT'
+[Unit]
+Description=Tailscale first-boot subnet router bootstrap
+After=network-online.target tailscaled.service
+Wants=network-online.target
+Requires=tailscaled.service
+ConditionPathExists=/etc/tailscale-bootstrap.key
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/tailscale up --authkey=file:/etc/tailscale-bootstrap.key --advertise-routes=192.168.0.190/31,192.168.0.192/26 --accept-dns=false --hostname=bastion --ssh=false
+ExecStartPost=/bin/rm -f /etc/tailscale-bootstrap.key
+ExecStartPost=/bin/systemctl disable tailscale-bootstrap.service
+
+[Install]
+WantedBy=multi-user.target
+UNIT
+
+systemctl enable tailscale-bootstrap.service

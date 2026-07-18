@@ -7,15 +7,16 @@
 #   sudo apt install xorriso p7zip-full cpio isolinux
 #
 # Usage:
-#   ./make-preseed-iso.sh debian-13.1.0-amd64-netinst.iso out/preseed.cfg
+#   ./make-preseed-iso.sh debian-13.1.0-amd64-netinst.iso preseed.cfg bootstrap.sh
 #
-# Output ISO contains TS_AUTHKEY and ADMIN_PASSWORD_HASH in plaintext.
-# It is a secret. Shred it once the USB is written.
+# Output ISO contains TS_AUTHKEY and ADMIN_PASSWORD_HASH in plaintext (in both
+# preseed.cfg and bootstrap.sh). It is a secret. Shred it once the USB is written.
 
 set -euo pipefail
 
-ISO_IN="${1:?usage: $0 <netinst.iso> <preseed.cfg>}"
-PRESEED="${2:?usage: $0 <netinst.iso> <preseed.cfg>}"
+ISO_IN="${1:?usage: $0 <netinst.iso> <preseed.cfg> <bootstrap.sh>}"
+PRESEED="${2:?usage: $0 <netinst.iso> <preseed.cfg> <bootstrap.sh>}"
+BOOTSTRAP="${3:?usage: $0 <netinst.iso> <preseed.cfg> <bootstrap.sh>}"
 
 ISO_OUT="preseed-$(basename "$ISO_IN")"
 WORK="$(mktemp -d)"
@@ -24,20 +25,30 @@ ISOFILES="$WORK/isofiles"
 cleanup() { chmod -R +w "$WORK" 2>/dev/null || true; rm -rf "$WORK"; }
 trap cleanup EXIT
 
-[[ -f "$ISO_IN"   ]] || { echo "no such ISO: $ISO_IN"; exit 1; }
-[[ -f "$PRESEED"  ]] || { echo "no such preseed: $PRESEED"; exit 1; }
+[[ -f "$ISO_IN"    ]] || { echo "no such ISO: $ISO_IN"; exit 1; }
+[[ -f "$PRESEED"   ]] || { echo "no such preseed: $PRESEED"; exit 1; }
+[[ -f "$BOOTSTRAP" ]] || { echo "no such bootstrap: $BOOTSTRAP"; exit 1; }
 
-# --- sanity-check the preseed before baking it into an ISO -------------------
-# envsubst renders unset vars as empty strings without complaining. An install
-# that silently sets a blank password hash is worse than one that fails here.
-if grep -qE '\$\{[A-Z_][A-Z0-9_]+\}' "$PRESEED"; then
-    echo "ERROR: unsubstituted variables remain in $PRESEED:"
-    grep -oE '\$\{[A-Z_][A-Z0-9_]+\}' "$PRESEED" | sort -u
-    exit 1
-fi
-for token in 'ssh-ed25519' 'tskey-auth' '$6$'; do
-    grep -qF "$token" "$PRESEED" || { echo "ERROR: '$token' not found in $PRESEED - variable rendered empty?"; exit 1; }
+# --- sanity-check the rendered files before baking them into an ISO ----------
+# envsubst renders unset vars as empty strings without complaining. Two failure
+# modes to catch: (a) a ${VAR} that never got substituted, (b) a var that WAS
+# substituted but with an empty value (leaves no ${...}, just a blank).
+#
+# The leftover-var pattern is narrowed to exactly our template form: ${NAME}
+# with braces required and a real name (>=2 chars, starts with letter/_). The
+# old loose pattern also matched bare $6 in the password hash and tripped itself.
+for f in "$PRESEED" "$BOOTSTRAP"; do
+    if grep -qE '\$\{[A-Z_][A-Z0-9_]+\}' "$f"; then
+        echo "ERROR: unsubstituted variables remain in $f:"
+        grep -oE '\$\{[A-Z_][A-Z0-9_]+\}' "$f" | sort -u
+        exit 1
+    fi
 done
+# (b): the values that MUST be present after a good render.
+for token in 'ssh-ed25519' 'tskey-auth'; do
+    grep -qF "$token" "$BOOTSTRAP" || { echo "ERROR: '$token' missing in $BOOTSTRAP - var rendered empty?"; exit 1; }
+done
+grep -qF '$6$' "$PRESEED" || { echo "ERROR: '\$6\$' missing in $PRESEED - password hash rendered empty?"; exit 1; }
 
 # --- extract ----------------------------------------------------------------
 echo ">> extracting $ISO_IN"
@@ -47,14 +58,18 @@ chmod -R +w "$ISOFILES"
 [[ -f "$ISOFILES/install.amd/initrd.gz" ]] || {
     echo "ERROR: install.amd/initrd.gz not found - is this an amd64 netinst?"; exit 1; }
 
-# --- inject preseed into the initrd -----------------------------------------
-# d-i automatically reads /preseed.cfg from the initrd root. No boot param needed.
-echo ">> injecting preseed into initrd"
+# --- inject preseed + bootstrap into the initrd -----------------------------
+# d-i automatically reads /preseed.cfg from the initrd root. bootstrap.sh rides
+# along at the same level, so late_command finds it at /bootstrap.sh during
+# install (initrd is mounted as /). cpio -A appends; feed it both names.
+echo ">> injecting preseed.cfg + bootstrap.sh into initrd"
 gunzip "$ISOFILES/install.amd/initrd.gz"
 STAGE="$WORK/stage"
 mkdir -p "$STAGE"
-cp "$PRESEED" "$STAGE/preseed.cfg"
-( cd "$STAGE" && echo preseed.cfg | cpio -H newc -o -A -F "$ISOFILES/install.amd/initrd" 2>/dev/null )
+cp "$PRESEED"   "$STAGE/preseed.cfg"
+cp "$BOOTSTRAP" "$STAGE/bootstrap.sh"
+( cd "$STAGE" && printf '%s\n' preseed.cfg bootstrap.sh \
+    | cpio -H newc -o -A -F "$ISOFILES/install.amd/initrd" 2>/dev/null )
 gzip "$ISOFILES/install.amd/initrd"
 
 # --- boot menu --------------------------------------------------------------
@@ -119,4 +134,4 @@ echo
 echo "built: $ISO_OUT"
 echo
 echo "This ISO contains secrets in plaintext. After writing the USB:"
-echo "  shred -u $ISO_OUT $PRESEED"
+echo "  shred -u $ISO_OUT $PRESEED $BOOTSTRAP"

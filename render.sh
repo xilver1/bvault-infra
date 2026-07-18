@@ -16,6 +16,8 @@
 
 set -euo pipefail
 
+VARS='$ADMIN_PASSWORD_HASH $ADMIN_SSH_PUBKEY $CI_SSH_PUBKEY $TS_AUTHKEY'
+
 validate_param() {
     case "$1" in
         bastion) ;;
@@ -31,23 +33,27 @@ export_ssm_params() {
 }
 
 substitute_template_files() {
+    local outs
     case "$1" in
         bastion)
-            local out="bastion/preseed.cfg"
             : "${TS_AUTHKEY:?Paste the auth key into the env before running}"
-            envsubst '$CI_SSH_PUBKEY $ADMIN_SSH_PUBKEY $ADMIN_PASSWORD_HASH $TS_AUTHKEY' < bastion/preseed.cfg.tmpl > "$out"
+            envsubst "$VARS" < bastion/preseed.cfg.tmpl > "bastion/preseed.cfg"
+            envsubst "$VARS" < bastion/bootstrap.sh.tmpl > "bastion/bootstrap.sh"
+            outs="bastion/preseed.cfg bastion/bootstrap.sh"
             ;;
         compute)
-            local out="compute/answer.toml"
-            envsubst '$CI_SSH_PUBKEY $ADMIN_SSH_PUBKEY $ADMIN_PASSWORD_HASH' < compute/answer.toml.tmpl > "$out"
+            envsubst "$VARS" < compute/answer.toml.tmpl > "compute/answer.toml"
+            outs="compute/answer.toml"
             ;;
     esac
 
     # Validation of operations -- looking for remaining "${" string literals
-    if grep -q '\${' "$out"; then
-        echo "render failed: unsubstituted variables remain in $out" >&2
-        exit 1
-    fi
+    for out in $outs; do
+        if grep -q '\${' "$out"; then
+            echo "render failed: unsubstituted variables remain in $out" >&2
+            exit 1
+        fi
+    done
 }
 
 validate_param "${1:-}"
