@@ -7,7 +7,7 @@ d-i keyboard-configuration/xkb-keymap select es
 
 ### Network - static, no DHCP lease games for an infra box
 # Must sit OUTSIDE the ISP router's DHCP pool or you will get an address conflict.
-d-i netcfg/choose_interface select auto
+d-i netcfg/choose_interface select enp1s0
 d-i netcfg/disable_autoconfig boolean true
 d-i netcfg/get_ipaddress string 192.168.0.191
 d-i netcfg/get_netmask string 255.255.255.0
