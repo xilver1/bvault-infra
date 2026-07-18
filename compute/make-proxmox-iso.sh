@@ -2,7 +2,7 @@
 set -eu
 cd proxmox-auto-install-assistant-docker
 
-if [[ ! -d iso]]; then
+if [[ ! -d iso ]]; then
     mkdir iso
 fi
 [ -f iso/proxmox-ve_9.2-1.iso ] || wget -O iso/proxmox-ve_9.2-1.iso https://enterprise.proxmox.com/iso/proxmox-ve_9.2-1.isodocker build -t proxmox-auto-installer .
