@@ -14,7 +14,7 @@ mkdir -p iso iso/output
 docker build -t proxmox-auto-installer .
 
 docker run --rm \
-  -v "$PWD/iso:/iso:ro" \
+  -v "$PWD/iso:/iso" \
   -v "$PWD/secrets:/answers:ro" \
   -v "$PWD/iso/output:/out" \
   proxmox-auto-installer:latest \
