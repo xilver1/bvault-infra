@@ -1,17 +1,5 @@
 #!/bin/sh
 # bootstrap.sh — bastion first-install provisioning.
-#
-# Runs ONCE, chrooted into the freshly installed system, from the preseed
-# late_command. It is a plain script instead of an inline late_command because
-# backslash-continued late_command lines in an initrd preseed are fragile: one
-# stray space after a backslash silently truncates the whole chain.
-#
-# Rendered by render.sh (envsubst): ADMIN_SSH_PUBKEY, CI_SSH_PUBKEY, TS_AUTHKEY.
-# ADMIN_USER is hardcoded to 'ansible' to match the preseed.
-#
-# Because late_command runs this via `in-target`, we are ALREADY inside the
-# target root. No /target prefix, no in-target here. Paths are absolute in the
-# installed system.
 
 set -eu
 

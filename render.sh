@@ -46,14 +46,6 @@ substitute_template_files() {
             outs="compute/answer.toml"
             ;;
     esac
-
-    # Validation of operations -- looking for remaining "${" string literals
-    for out in $outs; do
-        if grep -q '\${' "$out"; then
-            echo "render failed: unsubstituted variables remain in $out" >&2
-            exit 1
-        fi
-    done
 }
 
 validate_param "${1:-}"

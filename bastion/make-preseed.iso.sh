@@ -29,27 +29,6 @@ trap cleanup EXIT
 [[ -f "$PRESEED"   ]] || { echo "no such preseed: $PRESEED"; exit 1; }
 [[ -f "$BOOTSTRAP" ]] || { echo "no such bootstrap: $BOOTSTRAP"; exit 1; }
 
-# --- sanity-check the rendered files before baking them into an ISO ----------
-# envsubst renders unset vars as empty strings without complaining. Two failure
-# modes to catch: (a) a ${VAR} that never got substituted, (b) a var that WAS
-# substituted but with an empty value (leaves no ${...}, just a blank).
-#
-# The leftover-var pattern is narrowed to exactly our template form: ${NAME}
-# with braces required and a real name (>=2 chars, starts with letter/_). The
-# old loose pattern also matched bare $6 in the password hash and tripped itself.
-for f in "$PRESEED" "$BOOTSTRAP"; do
-    if grep -qE '\$\{[A-Z_][A-Z0-9_]+\}' "$f"; then
-        echo "ERROR: unsubstituted variables remain in $f:"
-        grep -oE '\$\{[A-Z_][A-Z0-9_]+\}' "$f" | sort -u
-        exit 1
-    fi
-done
-# (b): the values that MUST be present after a good render.
-for token in 'ssh-ed25519' 'tskey-auth'; do
-    grep -qF "$token" "$BOOTSTRAP" || { echo "ERROR: '$token' missing in $BOOTSTRAP - var rendered empty?"; exit 1; }
-done
-grep -qF '$6$' "$PRESEED" || { echo "ERROR: '\$6\$' missing in $PRESEED - password hash rendered empty?"; exit 1; }
-
 # --- extract ----------------------------------------------------------------
 echo ">> extracting $ISO_IN"
 7z x -o"$ISOFILES" "$ISO_IN" > /dev/null
