@@ -52,6 +52,7 @@ d-i partman/confirm boolean true
 d-i partman/confirm_nooverwrite boolean true
 
 ### Apt
+d-i apt-setup/disable-cdrom-entries boolean true
 d-i apt-setup/cdrom/set-first boolean false
 d-i apt-setup/non-free-firmware boolean true
 
