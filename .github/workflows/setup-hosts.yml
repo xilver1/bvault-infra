@@ -49,8 +49,6 @@ jobs:
       - name: Install external Ansible collections
         run: |
           ansible-galaxy collection install -r requirements.yaml
-          ansible-galaxy collection list
-          ansible-config dump --only-changed
 
       - name: Deploy ansible playbooks
         env:
