@@ -1,5 +1,11 @@
 name: Sync Tailscale ACLs
-on: workflow_dispatch
+on: 
+  push:
+    branches: [ "main" ]
+    paths: [ "tailscale/policy.hujson" ]
+  pull_request:
+    branches: [ "main" ]
+    paths: [ "tailscale/policy.hujson" ]
 
 permissions:
   id-token: write
