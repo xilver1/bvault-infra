@@ -1,1 +1,60 @@
 name: Setup server fleet
+on: workflow_dispatch
+
+defaults:
+  run:
+    shell: bash
+    working-directory: ./ansible
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy-compute:
+    name: Deploy ansible playbooks to compute servers
+    runs-on: ubuntu-latest
+    steps:
+      - name: Chekout repo
+        uses: actions/checkout@v6
+
+      - name: Install AWS sdk dependencies on runner
+        run: pip install botocore boto3
+      
+      - name: Obtain temporary AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::854469103070:role/lab-infra-ci
+          aws-region: us-east-1
+
+      - name: Load CI OAuth creds from SSM to access Tailnet
+        run: |
+          ID=$(aws ssm get-parameter --name /lab/tailscale/ci-oauth-client-id --query Parameter.Value --output text)
+          SECRET=$(aws ssm get-parameter --name /lab/tailscale/ci-oauth-client-secret --with-decryption --query Parameter.Value --output text)
+          echo "::add-mask::$SECRET"
+          echo "CI_OAUTH_ID=$ID" >> "$GITHUB_ENV"
+          echo "CI_OAUTH_SECRET=$SECRET" >> "$GITHUB_ENV"
+
+      - name: Retrieve and load pre-generated SSH private key 
+        run: |
+          mkdir -p ~/.ssh && chmod 0700 ~/.ssh
+          aws ssm get-parameter --name /lab/ci/ssh-private-key --with-decryption --query Parameter.Value --output text > ~/.ssh/id_ed25519 && chmod 0600 ~/.ssh/id_ed25519
+          aws ssm get-parameter --name /lab/ci/ssh-public-key --query Parameter.Value --output text > ~/.ssh/id_ed25519.pub && chmod 0600 ~/.ssh/id_ed25519.pub
+
+      - name: Tailnet access and test connectivity
+        uses: tailscale/github-action@v4
+        with:
+          oauth-client-id: ${{ env.CI_OAUTH_ID }}
+          oauth-client-secret: ${{ env.CI_OAUTH_SECRET }}
+          tags: tag:ci
+          ping: 100.x.y.z,machine-1.my-tailnet.ts.net
+
+      - name: Install external Ansible collections
+        run: |
+          ansible-galaxy collection install -r requirements.yaml
+
+      - name: Deploy ansible playbooks
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: "false"
+        run: |
+          ansible-playbook playbooks/compute-setup.yaml
