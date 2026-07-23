@@ -1,0 +1,4 @@
+ansible_user: root
+users:
+  prox_terraform_user: terraform@pve
+  prox_terraform_token_id: provider

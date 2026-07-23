@@ -1,0 +1,6 @@
+---
+- name: Create necessary proxmox roles and authorization
+  hosts: compute
+  remote_user: "{{ ansible_user }}"
+  roles:
+    - proxmox

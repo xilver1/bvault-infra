@@ -1,0 +1,19 @@
+---
+# Create all necessary roles
+
+
+# Create all necessary users
+- name: Create default user
+  community.proxmox.proxmox_user:
+    name: "{{ users['prox_default_user'] }}"
+    comment: Proxmox default user
+    email: user@example.nl
+    enable: true
+    expire: 0
+    firstname: User
+    password: 
+    groups:
+      - default
+    lastname: Default
+
+# Assign roles to users

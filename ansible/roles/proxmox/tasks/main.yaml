@@ -1,0 +1,5 @@
+- name: Setup API communication
+  ansible.builtin.import_tasks: api-auth.yaml
+
+- name: Setup users and roles
+  ansible.builtin.import_tasks: bootstrap.yaml

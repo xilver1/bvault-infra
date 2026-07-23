@@ -1,0 +1,65 @@
+---
+- name: Create role Terraform
+  community.proxmox.proxmox_role:
+    roleid: Terraform
+    privs:
+      - I
+      - Don't
+      - know
+
+- name: Create terraform Proxmox VE user
+  register: prox_user
+  community.proxmox.proxmox_user:
+    name: "{{ users['prox_terraform_user'] }}"
+    comment: Terraform integration user
+    email: user@example.nl
+    enable: true
+    expire: 0
+    firstname: Terra
+    tokens:
+      - tokenid: "{{ users['prox_terraform_token_id'] }}"
+        comment: API integration
+        expire: 0
+        privsep: false
+    lastname: Form
+
+# Terraform role
+- name: Create ACE
+  community.proxmox.proxmox_access_acl:
+    state: "present"
+    path: /vms
+    type: user
+    ugid: "{{ users['prox_terraform_user'] }}"
+    roleid: Terraform
+    propagate: 1
+    
+- name: Inspect token secrets structure
+  debug:
+    msg:
+      keys: "{{ prox_user.secrets.keys() | list }}"
+      count: "{{ prox_user.secrets | length }}"
+
+- name: Store generated API_TOKEN as parameter in AWS SSM parameter store
+  no_log: true
+  delegate_to: localhost
+  when: secrets[] is not empty
+  amazon.aws.ssm_parameter:
+    name: /lab/compute/api-token
+    type: SecureString
+    value: "{{ (secrets['api_token'].stdout | from_json).value }}"
+    region: us-east-1
+
+- name: Rotate API_token
+  shell: pveum user token modify "{{ users['prox_terraform_user'] }}" "{{ users['prox_terraform_token_id'] }}" --regenerate 1 --output-format json
+  no_log: true
+  register: token_rotated
+  tags: [rotate, never]
+- name: Store rotated API_TOKEN as parameter in AWS SSM parameter store
+  no_log: true
+  delegate_to: localhost
+  tags: [rotate, never]
+  amazon.aws.ssm_parameter:
+    name: /lab/compute/api-token
+    type: SecureString
+    value: "{{ (token_rotated.stdout | from_json).value }}"
+    region: us-east-1

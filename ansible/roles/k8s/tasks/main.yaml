@@ -1,0 +1,2 @@
+- name: K8s node software dependency setup
+  ansible.builtin.import_tasks: 

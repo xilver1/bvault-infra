@@ -1,0 +1,6 @@
+---
+- name: Install dependencies on control node
+  hosts: localhost
+  remote_user: "{{ ansible_user }}"
+  roles:
+    - control
