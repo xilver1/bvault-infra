@@ -17,9 +17,6 @@ jobs:
     steps:
       - name: Chekout repo
         uses: actions/checkout@v6
-
-      - name: Install AWS sdk dependencies on runner
-        run: pip install botocore boto3
       
       - name: Obtain temporary AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -52,6 +49,7 @@ jobs:
       - name: Install external Ansible collections
         run: |
           ansible-galaxy collection install -r requirements.yaml
+          ansible-doc amazon.aws.ssm_parameter
 
       - name: Deploy ansible playbooks
         env:
