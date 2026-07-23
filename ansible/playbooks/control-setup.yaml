@@ -1,5 +1,6 @@
 ---
 - name: Install dependencies on control node
+  hosts: localhost
   connection: local
   roles:
     - control
