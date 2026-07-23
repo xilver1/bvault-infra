@@ -1,5 +1,5 @@
 ---
-- name: Create necessary proxmox roles and authorization
+- name: Create necessary proxmox users w/ API tokens, roles and associations
   hosts: compute
   remote_user: "{{ ansible_user }}"
   roles:

@@ -11,7 +11,7 @@
     enable: true
     expire: 0
     firstname: User
-    password: 
+    password: test
     groups:
       - default
     lastname: Default
