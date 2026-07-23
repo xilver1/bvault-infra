@@ -33,6 +33,12 @@
     roleid: Terraform
     propagate: 1
     
+
+- name: Inspect registered result
+  ansible.builtin.debug:
+    var: prox_user
+
+    
 - name: Inspect token secrets structure
   debug:
     msg:
@@ -43,7 +49,7 @@
   no_log: true
   delegate_to: localhost
   when: secrets[] is not empty
-  amazon.aws.ssm_parameter:
+  community.aws.ssm_parameter:
     name: /lab/compute/api-token
     type: SecureString
     value: "{{ (secrets['api_token'].stdout | from_json).value }}"
@@ -58,7 +64,7 @@
   no_log: true
   delegate_to: localhost
   tags: [rotate, never]
-  amazon.aws.ssm_parameter:
+  community.aws.ssm_parameter:
     name: /lab/compute/api-token
     type: SecureString
     value: "{{ (token_rotated.stdout | from_json).value }}"
