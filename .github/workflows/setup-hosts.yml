@@ -45,7 +45,7 @@ jobs:
         uses: tailscale/github-action@v4
         with:
           oauth-client-id: ${{ env.CI_OAUTH_ID }}
-          oauth-client-secret: ${{ env.CI_OAUTH_SECRET }}
+          oauth-secret: ${{ env.CI_OAUTH_SECRET }}
           tags: tag:ci
           ping: 100.x.y.z,machine-1.my-tailnet.ts.net
 
