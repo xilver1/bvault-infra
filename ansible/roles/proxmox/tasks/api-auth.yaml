@@ -22,7 +22,7 @@
     --comment "Terraform integration user"
     --enable 1
     --expire 0
-  when: prox_terraform_user not in (pve_users.stdout | from_json | map(attribute='userid') | list)
+  when: users['prox_terraform_user'] not in (pve_users.stdout | from_json | map(attribute='userid') | list)
 
 - name: Grant Terraform role on /vms
   ansible.builtin.command: >
@@ -56,7 +56,7 @@
     --output-format json
   register: api_token
   no_log: true
-  when: prox_terraform_token_id not in (pve_tokens.stdout | from_json | map(attribute='tokenid') | list)
+  when: users['prox_terraform_token_id'] not in (pve_tokens.stdout | from_json | map(attribute='tokenid') | list)
 
 - name: Store generated API_TOKEN as parameter in AWS SSM parameter store
   no_log: true
