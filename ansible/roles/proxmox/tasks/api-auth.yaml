@@ -32,14 +32,23 @@
     --propagate 1
   changed_when: false
 
-- name: Grant datastore role on storage
+- name: Grant datastore role on /storage/local
   ansible.builtin.command: >
-    pveum acl modify /storage/{{ prox_storage_id }}
-    --users {{ prox_terraform_user }}
+    pveum acl modify /storage/local
+    --users {{ users['prox_terraform_user'] }}
+    --roles PVEDatastoreAdmin
+    --propagate 1
+  changed_when: false
+
+
+- name: Grant datastore role on /storage/local-lvm
+  ansible.builtin.command: >
+    pveum acl modify /storage/local-lvm
+    --users {{ users['prox_terraform_user'] }}
     --roles PVEDatastoreUser
     --propagate 1
   changed_when: false
-    
+
 
 - name: Check whether Terraform API token exists
   ansible.builtin.command: >
