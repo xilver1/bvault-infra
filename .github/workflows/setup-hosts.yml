@@ -18,6 +18,10 @@ jobs:
       - name: Chekout repo
         uses: actions/checkout@v6
       
+      - name: Satisfy AWS SDK dependencies on venv
+        run: |
+          pipx inject ansible-core boto3 botocore
+
       - name: Obtain temporary AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:

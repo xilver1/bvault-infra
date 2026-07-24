@@ -8,8 +8,13 @@
 
 - name: Create Terraform role
   ansible.builtin.command: >
-    pveum role add Terraform --privs "{{ terraform_privs | join(',') }}"
+    pveum role add Terraform
   when: "'Terraform' not in (pve_roles.stdout | from_json | map(attribute='roleid') | list)"
+
+- name: Modify role Terraform permissions
+  ansible.builtin.command: >
+    pveum role modify Terraform --privs "{{ terraform_privs | join(',') }}"
+  changed_when: false
 
 - name: Check whether Terraform user exists
   ansible.builtin.command: pveum user list --output-format json
@@ -63,30 +68,17 @@
     --expire 0
     --privsep 0
     --output-format json
-  register: api_token
   no_log: true
   when: users['prox_terraform_token_id'] not in (pve_tokens.stdout | from_json | map(attribute='tokenid') | list)
 
-- name: Store generated API_TOKEN as parameter in AWS SSM parameter store
-  no_log: true
-  delegate_to: localhost
-  when: api_token is changed
-  community.aws.ssm_parameter:
-    name: /lab/compute/api-token
-    string_type: SecureString
-    value: "{{ (api_token.stdout | from_json).value }}"
-    region: us-east-1
-
-- name: Rotate API_token
-  shell: pveum user token modify "{{ users['prox_terraform_user'] }}" "{{ users['prox_terraform_token_id'] }}" --regenerate 1 --output-format json
+- name: Regenerate Terraform API token
   no_log: true
   register: token_rotated
-  tags: [rotate, never]
+  ansible.builtin.command: pveum user token modify "{{ users['prox_terraform_user'] }}" "{{ users['prox_terraform_token_id'] }}" --regenerate 1 --output-format json
 
-- name: Store rotated API_TOKEN as parameter in AWS SSM parameter store
+- name: Store generated/regenerated API_TOKEN as parameter in AWS SSM parameter store
   no_log: true
   delegate_to: localhost
-  tags: [rotate, never]
   community.aws.ssm_parameter:
     name: /lab/compute/api-token
     string_type: SecureString
