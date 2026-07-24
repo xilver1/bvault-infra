@@ -49,19 +49,16 @@ This bootstraps the proxmox ISO with network config, authorized_keys, root passw
 
 NOTE: Need to add nomodeset in grub entry. Solo los puertos de la parte de atras del PC de sobremesa de más abajo son reconocidos para bootear desde USB.
 
-## Terraform integration
+## Terraform
 
-### Enabling API authentication through ansible
+### Integration: Enabling API authentication in proxmox through ansible
 
-We need to setup API authentication in proxmox to allow for Terraform to interact with the API. The ansible playbook terraform-setup.yaml will be responsible for this. 
+We need to setup API authentication in proxmox to allow for Terraform to interact with the API. The ansible playbook compute-setup.yaml will be responsible for this. 
 
-1. pveum user add terraform@pve
-2. pveum role add Terraform -privs "Realm.AllocateUser, VM.PowerMgmt, VM.GuestAgent.Unrestricted, Sys.Console, Sys.Audit, Sys.AccessNetwork, VM.Config.Cloudinit, VM.Replicate, Pool.Allocate, SDN.Audit, Realm.Allocate, SDN.Use, Mapping.Modify, VM.Config.Memory, VM.GuestAgent.FileSystemMgmt, VM.Allocate, SDN.Allocate, VM.Console, VM.Clone, VM.Backup, Datastore.AllocateTemplate, VM.Snapshot, VM.Config.Network, Sys.Incoming, Sys.Modify, VM.Snapshot.Rollback, VM.Config.Disk, Datastore.Allocate, VM.Config.CPU, VM.Config.CDROM, Group.Allocate, Datastore.Audit, VM.Migrate, VM.GuestAgent.FileWrite, Mapping.Use, Datastore.AllocateSpace, Sys.Syslog, VM.Config.Options, Pool.Audit, User.Modify, VM.Config.HWType, VM.Audit, Sys.PowerMgmt, VM.GuestAgent.Audit, Mapping.Audit, VM.GuestAgent.FileRead, Permissions.Modify"
-3. pveum aclmod / -user terraform@pve -role Terraform
-4. pveum user token add terraform@pve provider --privsep=0
-5. Concatenate the ID and token output by previous command in format: "user@realm!tokenid=secret". This will be the value of the api_token terraform variable
-6. Overwrite the value of the the SSM SecureString parameter "/lab/compute/api-token" with the actual value generated in preious step
+1. Execute "Setup server fleet" workflow in Github Actions. compute-setup.yaml playbook will be deployed
+2. User "terraform@pve" with custom role "Terraform" will have an API token registered in AWS SSM parameter store. Through this user, Terraform will communicate to Proxmox's API
 
+###
 
 # media-server
 

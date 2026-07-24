@@ -82,5 +82,5 @@
   community.aws.ssm_parameter:
     name: /lab/compute/api-token
     string_type: SecureString
-    value: "{{ (token_rotated.stdout | from_json).value }}"
+    value: "{{ users['prox_terraform_user'] }}!{{ users['prox_terraform_token_id'] }}={{ (token_rotated.stdout | from_json).value }}"
     region: us-east-1
