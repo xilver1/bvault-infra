@@ -1,6 +1,23 @@
 ---
-# Create all necessary roles
+- name: Remove enterprise repos
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop: 
+    - /etc/apt/sources.list.d/pve-enterprise.sources
+    - /etc/apt/sources.list.d/ceph.sources
 
-# Create all necessary users
+- name: Write community repo
+  ansible.builtin.copy:
+    dest: /etc/apt/sources.list.d/proxmox.sources
+    content: |
+      Types: deb
+      URIs: http://download.proxmox.com/debian/pve
+      Suites: trixie
+      Components: pve-no-subscription
+      Signed-By: /usr/share/keyrings/proxmox-archive-keyring.gpg
 
-# Assign roles to users
+- name: Update and upgrade packages
+  ansible.builtin.apt:
+    update_cache: yes
+    upgrade: dist
