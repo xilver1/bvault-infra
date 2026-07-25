@@ -56,5 +56,5 @@ resource "proxmox_download_file" "debian_13_genericcloud_amd64" {
   content_type = "import"
   datastore_id = "local"
   node_name    = "pve"
-  url          = "https://cloud.debian.org/images/cloud/trixie/latest/debian-13-genericcloud-amd64.qcow2"
+  url          = "https://cdimage.debian.org/cdimage/cloud/trixie/latest/debian-13-genericcloud-amd64.qcow2"
 }
