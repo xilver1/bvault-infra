@@ -4,16 +4,6 @@ variable "base_endpoint" {
   description = "Proxmox base URL endpoint"
 }
 
-variable "prox_user" {
-  type        = string
-  description = "Proxmox user for terraform access"
-}
-
-variable "prox_token_id" {
-  type        = string
-  description = "Proxmox token ID for terraform access"
-}
-
 variable "environment" {
   type        = string
   description = "Deployment environment name"
