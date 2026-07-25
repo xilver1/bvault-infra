@@ -40,7 +40,7 @@ resource "proxmox_virtual_environment_vm" "k8_node" {
 
   disk {
     datastore_id = "local-lvm"
-    import_from  = proxmox_download_file.ubuntu_cloud_image.id
+    import_from  = proxmox_download_file.debian_13_genericcloud_amd64.id
     interface    = "virtio0"
     iothread     = true
     discard      = "on"
