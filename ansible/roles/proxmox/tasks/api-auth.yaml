@@ -18,7 +18,7 @@
 
 - name: Create TerraformSDN role
   ansible.builtin.command: >
-    pveum role add TerraformNode
+    pveum role add TerraformSDN
   when: "'TerraformSDN' not in (pve_roles.stdout | from_json | map(attribute='roleid') | list)"
 
 - name: Modify role Terraform permissions
@@ -33,7 +33,7 @@
 
 - name: Modify role TerraformSDN permissions
   ansible.builtin.command: >
-    pveum role modify TerraformNode --privs "SDN.Use"
+    pveum role modify TerraformSDN --privs "SDN.Use"
   changed_when: false
 
 - name: Check whether Terraform user exists
@@ -85,7 +85,7 @@
   ansible.builtin.command: >
     pveum acl modify /sdn/zones/localnetwork/vmbr0
     --users {{ users['prox_terraform_user'] }}
-    --roles TerraforSDN
+    --roles TerraformSDN
     --propagate 1
   changed_when: false
 
