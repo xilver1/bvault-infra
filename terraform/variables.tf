@@ -1,5 +1,6 @@
 variable "base_endpoint" {
     type = string
+    default = "https://192.168.0.190:8006"
     description = "Proxmox base URL endpoint"
 }
 
