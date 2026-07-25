@@ -71,4 +71,21 @@ jobs:
         id: apply
         run: terraform apply tfplan -no-color
 
+      - name: Generate VM inventory
+        id: generate_vm_inventory
+        run: |
+          terraform output -json k8s_host_data | jq '{
+            control_plane: {
+              hosts: with_entries(
+                select(.value.role == "control")
+                | .value = { ansible_host: .value.ip }
+              )
+            },
+            workers: {
+              hosts: with_entries(
+                select(.value.role == "worker")
+                | .value = { ansible_host: .value.ip }
+              )
+            }
+          }' > ../ansible/inventory/vms.yaml
 
