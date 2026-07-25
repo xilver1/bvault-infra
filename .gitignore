@@ -1,2 +1,7 @@
 *.iso
 *.toml
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+*.tfvars
