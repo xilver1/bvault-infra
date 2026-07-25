@@ -11,9 +11,19 @@
     pveum role add Terraform
   when: "'Terraform' not in (pve_roles.stdout | from_json | map(attribute='roleid') | list)"
 
+- name: Create TerraformNode role
+  ansible.builtin.command: >
+    pveum role add TerraformNode
+  when: "'TerraformNode' not in (pve_roles.stdout | from_json | map(attribute='roleid') | list)"
+
 - name: Modify role Terraform permissions
   ansible.builtin.command: >
     pveum role modify Terraform --privs "{{ terraform_privs | join(',') }}"
+  changed_when: false
+
+- name: Modify role TerraformNode permissions
+  ansible.builtin.command: >
+    pveum role modify TerraformNode --privs "Sys.AccessNetwork"
   changed_when: false
 
 - name: Check whether Terraform user exists
@@ -45,12 +55,19 @@
     --propagate 1
   changed_when: false
 
-
 - name: Grant datastore role on /storage/local-lvm
   ansible.builtin.command: >
     pveum acl modify /storage/local-lvm
     --users {{ users['prox_terraform_user'] }}
     --roles PVEDatastoreUser
+    --propagate 1
+  changed_when: false
+
+- name: Grant TerraformNode role on /nodes/pve
+  ansible.builtin.command: >
+    pveum acl modify /nodes/pve
+    --users {{ users['prox_terraform_user'] }}
+    --roles TerraformNode
     --propagate 1
   changed_when: false
 
