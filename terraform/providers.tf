@@ -4,6 +4,7 @@ terraform {
     backend "s3" {
         bucket = "terraform-state-854469103070-us-east-1-an"
         key = "lab-infra/terraform.tfstate"
+        region = "us-east-1"
         use_lockfile = true
     }
 
