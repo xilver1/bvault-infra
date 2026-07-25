@@ -1,6 +1,5 @@
-resource "aws_ssm_parameter" "ci-ssh-public-key" {
+data "aws_ssm_parameter" "ci-ssh-public-key" {
   name = "/lab/ci/ssh-public-key"
-  type = "string"
 }
 
 locals {
