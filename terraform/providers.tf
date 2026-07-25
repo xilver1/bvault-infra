@@ -27,8 +27,6 @@ provider "aws" {
 
 ephemeral "aws_ssm_parameter" "api_token" {
     arn = "arn:aws:ssm:us-east-1:854469103070:parameter/lab/compute/api-token"
-    with_decryption = true
-    name = "/lab/compute/api-token"
 }
 
 provider "proxmox" {
