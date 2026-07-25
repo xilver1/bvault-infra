@@ -40,7 +40,7 @@ resource "proxmox_virtual_environment_vm" "k8_node" {
 
   disk {
     datastore_id = "local-lvm"
-    import_from  = proxmox_virtual_environment_download_file.ubuntu_cloud_image.id
+    import_from  = proxmox_download_file.ubuntu_cloud_image.id
     interface    = "virtio0"
     iothread     = true
     discard      = "on"
@@ -52,7 +52,7 @@ resource "proxmox_virtual_environment_vm" "k8_node" {
   }
 }
 
-resource "proxmox_virtual_download_file" "debian_13_genericcloud_amd64" {
+resource "proxmox_download_file" "debian_13_genericcloud_amd64" {
   content_type = "import"
   datastore_id = "local"
   node_name    = "pve"
