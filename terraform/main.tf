@@ -34,7 +34,7 @@ resource "proxmox_virtual_environment_vm" "k8_node" {
 
     user_account {
       username = "k8s"
-      keys     = [trimspace(resource.aws_ssm_parameter.ci-ssh-public-key.value)]
+      keys     = [trimspace(data.aws_ssm_parameter.ci-ssh-public-key.value)]
     }
   }
 
@@ -52,7 +52,7 @@ resource "proxmox_virtual_environment_vm" "k8_node" {
   }
 }
 
-resource "proxmox_virtual_environment_download_file" "ubuntu_cloud_image" {
+resource "proxmox_virtual_download_file" "debian_13_genericcloud_amd64" {
   content_type = "import"
   datastore_id = "local"
   node_name    = "pve"
