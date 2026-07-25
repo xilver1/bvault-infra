@@ -10,7 +10,7 @@ locals {
   }
 }
 
-resource "proxmox_virtual_environment_vm" "k8_node" {
+resource "proxmox_virtual_environment_vm" "k8s_node" {
   for_each = local.k8s_nodes
   name      = each.key
   node_name = "pve"
