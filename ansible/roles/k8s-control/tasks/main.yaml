@@ -1,0 +1,6 @@
+---
+- name: Install software prerequisites and configure them
+  ansible.builtin.import_tasks: software.yaml
+
+- name: Configure the k8s control plane
+  ansible.builtin.import_tasks: bootstrap.yaml

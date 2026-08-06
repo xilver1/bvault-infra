@@ -1,0 +1,12 @@
+---
+- name: restart sshd
+  become: true
+  ansible.builtin.service:
+    name: ssh
+    state: restarted
+
+- name: restart containerd
+  become: true
+  ansible.builtin.service:
+    name: containerd
+    state: restarted

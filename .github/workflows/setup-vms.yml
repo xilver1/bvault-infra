@@ -1,4 +1,4 @@
-name: Setup all necessary VMs in proxmox
+name: Setup kubernetes cluster
 on: workflow_dispatch
 
 defaults:
@@ -75,17 +75,30 @@ jobs:
         id: generate_vm_inventory
         run: |
           terraform output -json k8s_host_data | jq '{
-            control_plane: {
-              hosts: with_entries(
-                select(.value.role == "control")
-                | .value = { ansible_host: .value.ip }
-              )
-            },
-            workers: {
-              hosts: with_entries(
-                select(.value.role == "worker")
-                | .value = { ansible_host: .value.ip }
-              )
+            k8s_cluster: {
+              children: {
+                control_plane: {
+                  hosts: with_entries(
+                    select(.value.role == "control")
+                    | .value = { ansible_host: .value.ip }
+                  )
+                },
+                workers: {
+                  hosts: with_entries(
+                    select(.value.role == "worker")
+                    | .value = { ansible_host: .value.ip }
+                  )
+                }
+              }
             }
-          }' > ../ansible/inventory/vms.yaml
+          }' > ../ansible/inventory/k8s.yaml
 
+      - name: Install external Ansible collections
+        run: |
+          ansible-galaxy collection install -r requirements.yaml
+
+      - name: Deploy ansible playbooks
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: "false"
+        run: |
+          ansible-playbook playbooks/k8s-cluster-setup.yaml

@@ -1,0 +1,21 @@
+---
+- name: Initialize cluster
+  become: true
+  ansible.builtin.command: >
+    kubeadm init --pod-network-cidr {{ pod_cidr }}
+    --control-plane-endpoint {{ k8s_cluster_virtual_ip }}:6443
+  args:
+    creates: /etc/kubernetes/admin.conf
+
+- name: Copy credentials
+  become: true
+  ansible.builtin.fetch:
+    src: /etc/kubernetes/admin.conf
+    dest: "{{ lookup('env', 'HOME') }}/.kube/config"
+    flat: yes
+
+- name: Generate worker join command
+  become: true
+  ansible.builtin.command: kubeadm token create --print-join-command
+  register: join_command
+  changed_when: false

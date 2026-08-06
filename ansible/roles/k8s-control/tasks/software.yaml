@@ -1,0 +1,54 @@
+---
+- name: Install keepalived and haproxy
+  ansible.builtin.apt:
+    pkg:
+      - keepalived
+      - haproxy
+
+- name: Configure keepalived
+  ansible.builtin.copy:
+    dest: /etc/keepalived/keepalived.conf
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      vrrp_instance kubernetes {
+        state MASTER
+        interface {{ ansible_default_ipv4.interface }}
+        virtual_router_id 1
+        priority 100
+        virtual_ipaddress {
+          {{ k8s_cluster_virtual_ip }}
+        }
+      }
+    notify: restart keepalived
+
+- name: Ensure keepalived is started and enabled
+  ansible.builtin.service:
+    name: keepalived
+    state: started
+    enabled: true
+
+- name: Add haproxy configuration
+  ansible.builtin.blockinfile:
+    path: /etc/haproxy/haproxy.cfg
+    append_newline: false
+    prepend_newline: true
+    block: |
+      frontend kubernetes-frontend
+        bind {{ k8s_cluster_virtual_ip }}:6443
+        mode tcp
+        default_backend kubernetes-backend
+      
+      backend kubernetes-backend
+        mode tcp
+      {% for host in groups['control_plane'] %}
+        server {{ host }} {{ hostvars[host]['ansible_host'] }}:6443 check
+      {% endfor %}
+    notify: restart haproxy
+
+- name: Ensure haproxy is started and enabled
+  ansible.builtin.service:
+    name: haproxy
+    state: started
+    enabled: true

@@ -1,0 +1,166 @@
+---
+- name: Write sshd hardened drop-in
+  ansible.builtin.copy:
+    dest: /etc/ssh/sshd_config.d/00-hardened.conf
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      PermitRootLogin no
+      PasswordAuthentication no
+      PubkeyAuthentication yes
+      AllowUsers k8s
+  notify: restart sshd
+
+- name: Validate assembled sshd config
+  ansible.builtin.command: /usr/sbin/sshd -t
+  changed_when: false
+
+- name: Disable swap for current session
+  ansible.builtin.command: swapoff -a
+  when: ansible_swaptotal_mb > 0
+  changed_when: ansible_swaptotal_mb > 0
+
+- name: Disable swap permanently persisting reboots
+  ansible.builtin.replace:
+    path: /etc/fstab
+    regexp: '^(\s*)([^#\n]+\s+)(\w+\s+)swap(\s+.*)$'
+    replace: '#\1\2\3swap\4'
+    backup: yes
+  when: ansible_swaptotal_mb > 0
+  changed_when: ansible_swaptotal_mb > 0
+
+- name: Enable br_netfilter for the current session
+  ansible.builtin.command: modprobe br_netfilter
+  changed_when: false
+
+- name: Enable br_netfilter permanently persisting reboots
+  ansible.builtin.copy:
+    dest: /etc/modules-load.d/k8s.conf
+    owner: root
+    group: root
+    mode: "0644"
+    content: br_netfilter
+
+- name: Enable IPv4 forwarding
+  ansible.posix.sysctl:
+    name: net.ipv4.ip_forward
+    value: "1"
+    sysctl_set: true
+    state: present
+    reload: true
+
+- name: Enable bridge netfilter call-iptables
+  ansible.posix.sysctl:
+    name: net.bridge.bridge-nf-call-iptables
+    value: "1"
+    sysctl_set: true
+    state: present
+    reload: true
+
+- name: Enable bridge netfilter call-ip6tables
+  ansible.posix.sysctl:
+    name: net.bridge.bridge-nf-call-ip6tables
+    value: "1"
+    sysctl_set: true
+    state: present
+    reload: true
+
+- name: Install prerequisite packages for kubernetes
+  ansible.builtin.apt:
+    pkg:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gpg
+
+- name: Ensure keyrings dir exists
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
+
+- name: Download kubernetes signing key
+  ansible.builtin.get_url:
+    url: https://pkgs.k8s.io/core:/stable:/v1.36/deb/Release.key
+    dest: /etc/apt/keyrings/kubernetes-apt-keyring.asc
+    mode: "0644"
+
+- name: Download docker signing key
+  ansible.builtin.get_url:
+    url: https://download.docker.com/linux/debian/gpg
+    dest: /etc/apt/keyrings/docker.asc
+    mode: "0644"
+
+- name: Dearmor kubernetes key
+  ansible.builtin.command: gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg /etc/apt/keyrings/kubernetes-apt-keyring.asc
+  args:
+    creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+- name: Add kubernetes apt repo
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.36/deb/ /"
+    filename: kubernetes
+    state: present
+
+- name: Add docker apt repo
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian {{ ansible_distribution_release }} stable"
+    filename: docker
+    state: present
+
+- name: Install kubelet, kubectl and kubeadm
+  ansible.builtin.apt:
+    update_cache: yes
+    pkg:
+      - kubelet
+      - kubectl
+      - containerd.io
+      - kubeadm
+
+- name: Hold kubernetes packages
+  ansible.builtin.dpkg_selections:
+    name: "{{ item }}"
+    selection: hold
+  loop:
+    - kubelet
+    - kubeadm
+    - kubectl
+
+- name: Upgrade packages
+  ansible.builtin.apt:
+    upgrade: dist
+
+- name: Create default container config dir
+  ansible.builtin.file:
+    path: /etc/containerd
+    state: directory
+
+- name: Generate default containerd config
+  ansible.builtin.command: containerd config default
+  register: containerd_default
+  changed_when: false
+
+- name: Write containerd config
+  ansible.builtin.copy:
+    dest: /etc/containerd/config.toml
+    owner: root
+    group: root
+    mode: "0644"
+    content: "{{ containerd_default.stdout }}"
+
+- name: Use systemd cgroup driver
+  ansible.builtin.replace:
+    path: /etc/containerd/config.toml
+    regexp: 'SystemdCgroup = false'
+    replace: 'SystemdCgroup = true'
+  notify: restart containerd
+
+- name: Ensure containerd service is started and enabled
+  ansible.builtin.service:
+    name: containerd
+    state: started
+    enabled: true
+
+- name: Flush handlers to restart containerd before kubeadm
+  ansible.builtin.meta: flush_handlers

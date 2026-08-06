@@ -1,5 +1,0 @@
-- name: Install dependencies for AWS sdk
-  ansible.builtin.pip: 
-    name: 
-      - boto3
-      - botocore

@@ -58,7 +58,9 @@ We need to setup API authentication in proxmox to allow for Terraform to interac
 1. Execute "Setup server fleet" workflow in Github Actions. compute-setup.yaml playbook will be deployed
 2. User "terraform@pve" with custom role "Terraform" will have an API token registered in AWS SSM parameter store. Through this user, Terraform will communicate to Proxmox's API
 
-###
+### Kubernetes cluster setup
+
+1. Execute "Deploy kubernetes cluster" workflow in GIthub Actions. k8s-cluster-setup.yaml ansible playbook will be executed for this.
 
 # media-server
 
