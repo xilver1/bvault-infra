@@ -31,6 +31,7 @@
     enabled: true
 
 - name: Add haproxy configuration
+  become: true
   notify: restart haproxy
   ansible.builtin.blockinfile:
     path: /etc/haproxy/haproxy.cfg
