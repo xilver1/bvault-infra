@@ -18,8 +18,8 @@
 
 - name: Disable swap for current session
   ansible.builtin.command: swapoff -a
-  when: ansible_swaptotal_mb > 0
-  changed_when: ansible_swaptotal_mb > 0
+  when: "ansible_facts['swaptotal_mb'] > 0"
+  changed_when: false
 
 - name: Disable swap permanently persisting reboots
   ansible.builtin.replace:
@@ -27,8 +27,8 @@
     regexp: '^(\s*)([^#\n]+\s+)(\w+\s+)swap(\s+.*)$'
     replace: '#\1\2\3swap\4'
     backup: yes
-  when: ansible_swaptotal_mb > 0
-  changed_when: ansible_swaptotal_mb > 0
+  when: "ansible_facts['swaptotal_mb'] > 0"
+  changed_when: false
 
 - name: Enable br_netfilter for the current session
   ansible.builtin.command: modprobe br_netfilter
