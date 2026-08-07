@@ -94,11 +94,13 @@ jobs:
           }' > ../ansible/inventory/k8s.yaml
 
       - name: Install external Ansible collections
+        working-directory: ./ansible
         run: |
-          ansible-galaxy collection install -r ../ansible/requirements.yaml
+          ansible-galaxy collection install -r requirements.yaml
 
       - name: Deploy ansible playbooks
         env:
           ANSIBLE_HOST_KEY_CHECKING: "false"
+        working-directory: ./ansible
         run: |
-          ansible-playbook ../ansible/playbooks/k8s-cluster-setup.yaml
+          ansible-playbook playbooks/k8s-cluster-setup.yaml
