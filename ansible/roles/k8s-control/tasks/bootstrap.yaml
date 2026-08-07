@@ -16,7 +16,7 @@
 
 - name: Ensure .kube dir exists
   ansible.builtin.file:
-    path: "/home/{{ ansible_user }}/.kube/config"
+    path: "/home/{{ ansible_user }}/.kube"
     state: directory
     mode: "0755"
 
