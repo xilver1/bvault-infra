@@ -1,6 +1,3 @@
 - name: K8s node config setup
   become: true
   ansible.builtin.import_tasks: bootstrap.yaml
-
-- name: K8s node software dependency setup
-  ansible.builtin.import_tasks: 
