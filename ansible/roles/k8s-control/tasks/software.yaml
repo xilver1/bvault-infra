@@ -6,6 +6,7 @@
       - haproxy
 
 - name: Configure keepalived
+  notify: restart keepalived
   ansible.builtin.copy:
     dest: /etc/keepalived/keepalived.conf
     owner: root
@@ -21,7 +22,6 @@
           {{ k8s_cluster_virtual_ip }}
         }
       }
-    notify: restart keepalived
 
 - name: Ensure keepalived is started and enabled
   ansible.builtin.service:
@@ -30,6 +30,7 @@
     enabled: true
 
 - name: Add haproxy configuration
+  notify: restart haproxy
   ansible.builtin.blockinfile:
     path: /etc/haproxy/haproxy.cfg
     append_newline: false
@@ -45,7 +46,6 @@
       {% for host in groups['control_plane'] %}
         server {{ host }} {{ hostvars[host]['ansible_host'] }}:6443 check
       {% endfor %}
-    notify: restart haproxy
 
 - name: Ensure haproxy is started and enabled
   ansible.builtin.service:
