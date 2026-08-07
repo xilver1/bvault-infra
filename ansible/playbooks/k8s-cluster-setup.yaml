@@ -20,3 +20,8 @@
 - name: Set up CNI
   hosts:
     - control_plane
+  tasks:
+    - name: Install Calico CNI
+      ansible.builtin.import_role:
+        name: k8s-control
+        tasks_from: cni
