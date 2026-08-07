@@ -58,7 +58,6 @@
   async: 30
   poll: 0
 
-
 - name: Check for published virtual IP
   changed_when: false
   register: vip_check
@@ -66,7 +65,6 @@
   delay: 5
   until: vip_check.rc == 0
   ansible.builtin.shell: ip -br addr | grep {{ k8s_cluster_virtual_ip }}
-
 
 - name: Add haproxy configuration
   become: true
@@ -77,14 +75,14 @@
     prepend_newline: true
     block: |
       frontend kubernetes-frontend
-        bind {{ k8s_cluster_virtual_ip }}:6443
+        bind {{ k8s_cluster_virtual_ip }}:8443
         mode tcp
         default_backend kubernetes-backend
       
       backend kubernetes-backend
         mode tcp
       {% for host in groups['control_plane'] %}
-        server {{ host }} {{ hostvars[host]['ansible_host'] }}:6443 check
+        server {{ host }} {{ hostvars[host]['ansible_host'] }}:8443 check
       {% endfor %}
 
 - name: Force restart haproxy
