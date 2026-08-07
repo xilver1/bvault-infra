@@ -16,3 +16,7 @@
     - workers
   roles:
     - k8s-workers
+
+- name: Set up CNI
+  hosts:
+    - control_plane

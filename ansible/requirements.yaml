@@ -3,3 +3,4 @@ collections:
   - name: community.proxmox
   - name: amazon.aws
   - name: community.aws
+  - name: kubernetes.core

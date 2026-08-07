@@ -1,0 +1,21 @@
+---
+- name: Add Tigera repo
+  delegate_to: localhost
+  kubernetes.core.helm_repository:
+    name: projectcalico
+    repo_url: https://docs.tigera.io/calico/charts
+
+- name: Install tigera-operator chart
+  delegate_to: localhost
+  kubernetes.core.helm:
+    name: calico
+    chart_ref: projectcalico/tigera-operator
+    chart_version: v3.32.1
+    release_namespace: tigera-operator
+    create_namespace : true
+    values:
+      installation:
+        calicoNetwork:
+          ipPools:
+            - cidr: "{{ pod_cidr }}"
+              encapsulation: VXLAN

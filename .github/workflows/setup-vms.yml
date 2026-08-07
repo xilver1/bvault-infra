@@ -18,6 +18,11 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v6
       
+      - name: Satisfy K8s and Helm Ansible module dependencies for python
+        run: |
+          pip install kubernetes
+          pipx inject kubernetes
+
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v4
         with:
