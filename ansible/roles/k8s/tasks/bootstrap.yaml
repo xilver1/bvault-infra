@@ -98,7 +98,7 @@
     creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
 
 - name: Add kubernetes apt repo
-  ansible.builtin.deb_822_repository:
+  ansible.builtin.deb822_repository:
     name: kubernetes
     types: deb
     suites: /
@@ -106,7 +106,7 @@
     signed_by: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
 
 - name: Add docker apt repo
-  ansible.builtin.deb_822_repository:
+  ansible.builtin.deb822_repository:
     name: docker
     types: deb
     suites: stable
