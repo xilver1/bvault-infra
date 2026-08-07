@@ -33,6 +33,7 @@
 		// CI: the lab block only, and only the two ports it actually uses.
 		// tcp:22   -> Ansible
 		// tcp:8006 -> Proxmox API, for Terraform
+		// tcp: 8443 -> Kubernetes Haproxy front end
 		{
 			"src": ["tag:ci"],
 			"dst": ["192.168.0.190/31", "192.168.0.192/26"],
