@@ -5,6 +5,15 @@
       - keepalived
       - haproxy
 
+- name: Ensure keepalived drop-in directory exists
+  become: true
+  ansible.builtin.file:
+    path: /etc/systemd/system/keepalived.service.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
 - name: Change keepalived service type
   become: true
   notify: reload daemons
