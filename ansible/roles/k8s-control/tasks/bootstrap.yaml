@@ -7,12 +7,22 @@
   args:
     creates: /etc/kubernetes/admin.conf
 
-- name: Copy credentials
+- name: Copy credentials to runner
   become: true
   ansible.builtin.fetch:
     src: /etc/kubernetes/admin.conf
     dest: "{{ lookup('env', 'HOME') }}/.kube/config"
     flat: yes
+
+- name: Copy credentials to node
+  become: true
+  ansible.builtin.copy:
+    src: /etc/kubernetes/admin.conf
+    dest: "/home/{{ ansible_user }}/.kube/config"
+    owner: root
+    group: root
+    mode: "0644"
+    remote_src: true
 
 - name: Generate worker join command
   become: true
