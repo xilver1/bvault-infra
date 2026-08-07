@@ -6,6 +6,7 @@
       - haproxy
 
 - name: Configure keepalived
+  become: true
   notify: restart keepalived
   ansible.builtin.copy:
     dest: /etc/keepalived/keepalived.conf
