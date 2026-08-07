@@ -20,7 +20,7 @@ resource "proxmox_virtual_environment_vm" "k8s_node" {
 
   cpu { 
     cores = each.value.cores
-    cpu_type = "host"
+    type = "host"
   }
   memory { dedicated = each.value.memory }
 
