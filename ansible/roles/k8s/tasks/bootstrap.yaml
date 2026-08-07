@@ -50,6 +50,15 @@
     state: present
     reload: true
 
+- name: Allow binding to non-local VIP
+  ansible.posix.sysctl:
+    name: net.ipv4.ip_nonlocal_bind
+    value: "1"
+    sysctl_set: true
+    state: present
+    reload: true
+
+
 - name: Enable bridge netfilter call-iptables
   ansible.posix.sysctl:
     name: net.bridge.bridge-nf-call-iptables
