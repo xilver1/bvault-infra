@@ -24,6 +24,9 @@
         }
       }
 
+- name: Force restart keepalived
+  meta: flush_handlers
+
 - name: Ensure keepalived is started and enabled
   ansible.builtin.service:
     name: keepalived
@@ -48,6 +51,9 @@
       {% for host in groups['control_plane'] %}
         server {{ host }} {{ hostvars[host]['ansible_host'] }}:6443 check
       {% endfor %}
+
+- name: Force restart haproxy
+  meta: flush_handlers
 
 - name: Ensure haproxy is started and enabled
   ansible.builtin.service:
