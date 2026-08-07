@@ -50,6 +50,7 @@
     state: present
     reload: true
 
+ # This allows for binding to the IP before keepalived associates the VIP to eth0
 - name: Allow binding to non-local VIP
   become: true
   ansible.posix.sysctl:

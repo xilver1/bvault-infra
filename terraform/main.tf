@@ -18,7 +18,10 @@ resource "proxmox_virtual_environment_vm" "k8s_node" {
   # should be true if qemu agent is not installed / enabled on the VM
   stop_on_destroy = true
 
-  cpu { cores = each.value.cores }
+  cpu { 
+    cores = each.value.cores
+    cpu_type = "host"
+  }
   memory { dedicated = each.value.memory }
 
   initialization {
