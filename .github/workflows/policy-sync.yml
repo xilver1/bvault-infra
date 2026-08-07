@@ -49,3 +49,4 @@ jobs:
           oauth-secret: ${{ env.TS_OAUTH_SECRET }}
           tailnet: xilver1.github
           action: apply
+          policy-file: tailscale/policy.hujson
