@@ -101,4 +101,4 @@ jobs:
         env:
           ANSIBLE_HOST_KEY_CHECKING: "false"
         run: |
-          ansible-playbook playbooks/k8s-cluster-setup.yaml
+          ansible-playbook ../ansible/playbooks/k8s-cluster-setup.yaml
