@@ -14,6 +14,12 @@
     dest: "{{ lookup('env', 'HOME') }}/.kube/config"
     flat: yes
 
+- name: Ensure .kube dir exists
+  ansible.builtin.file:
+    path: "/home/{{ ansible_user }}/.kube/config"
+    state: directory
+    mode: "0755"
+
 - name: Copy credentials to node
   become: true
   ansible.builtin.copy:

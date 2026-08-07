@@ -65,7 +65,6 @@
     sysctl_set: true
     state: present
     reload: true
-
     
 - name: Ensure keyrings dir exists
   ansible.builtin.file:
