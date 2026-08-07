@@ -98,16 +98,21 @@
     creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
 
 - name: Add kubernetes apt repo
-  ansible.builtin.apt_repository:
-    repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.36/deb/ /"
-    filename: kubernetes
-    state: present
+  ansible.builtin.deb_822_repository:
+    name: kubernetes
+    types: deb
+    suites: /
+    uris: https://pkgs.k8s.io/core:/stable:/v1.36/deb/
+    signed_by: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
 
 - name: Add docker apt repo
-  ansible.builtin.apt_repository:
-    repo: "deb [signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian {{ ansible_distribution_release }} stable"
-    filename: docker
-    state: present
+  ansible.builtin.deb_822_repository:
+    name: docker
+    types: deb
+    suites: stable
+    uris: https://download.docker.com/linux/debian
+    signed_by: /etc/apt/keyrings/docker.asc
+
 
 - name: Install kubelet, kubectl and kubeadm
   ansible.builtin.apt:
