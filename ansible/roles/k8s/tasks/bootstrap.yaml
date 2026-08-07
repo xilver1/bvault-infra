@@ -109,7 +109,9 @@
   ansible.builtin.deb822_repository:
     name: docker
     types: deb
-    suites: stable
+    suites: "{{ ansible_facts['distribution_release'] }}"
+    components:
+      - stable
     uris: https://download.docker.com/linux/debian
     signed_by: /etc/apt/keyrings/docker.asc
 
