@@ -1,4 +1,9 @@
 ---
+- name: reload daemons
+  become: true
+  ansible.builtin.service:
+    daemon_reload: true
+
 - name: restart keepalived
   become: true
   ansible.builtin.service:

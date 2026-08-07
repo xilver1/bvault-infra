@@ -5,6 +5,19 @@
       - keepalived
       - haproxy
 
+- name: Change keepalived service type
+  become: true
+  notify: reload daemons
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/keepalived.service.d/override.conf
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      [Service]
+      Type=
+      Type=simple
+
 - name: Configure keepalived
   become: true
   notify: restart keepalived
