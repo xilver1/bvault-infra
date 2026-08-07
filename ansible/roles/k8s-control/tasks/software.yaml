@@ -14,7 +14,7 @@
     content: |
       vrrp_instance kubernetes {
         state MASTER
-        interface {{ ansible_default_ipv4.interface }}
+        interface {{ ansible_facts['default_ipv4']['interface'] }}
         virtual_router_id 1
         priority 100
         virtual_ipaddress {

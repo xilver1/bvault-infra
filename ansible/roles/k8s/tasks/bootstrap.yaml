@@ -66,14 +66,7 @@
     state: present
     reload: true
 
-- name: Install prerequisite packages for kubernetes
-  ansible.builtin.apt:
-    pkg:
-      - apt-transport-https
-      - ca-certificates
-      - curl
-      - gpg
-
+    
 - name: Ensure keyrings dir exists
   ansible.builtin.file:
     path: /etc/apt/keyrings
@@ -115,6 +108,15 @@
     uris: https://download.docker.com/linux/debian
     signed_by: /etc/apt/keyrings/docker.asc
 
+
+
+- name: Install prerequisite packages for kubernetes
+  ansible.builtin.apt:
+    pkg:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gpg
 
 - name: Install kubelet, kubectl and kubeadm
   ansible.builtin.apt:
