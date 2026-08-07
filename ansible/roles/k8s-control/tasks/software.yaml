@@ -82,7 +82,7 @@
       backend kubernetes-backend
         mode tcp
       {% for host in groups['control_plane'] %}
-        server {{ host }} {{ hostvars[host]['ansible_host'] }}:8443 check
+        server {{ host }} {{ hostvars[host]['ansible_host'] }}:6443 check
       {% endfor %}
 
 - name: Force restart haproxy

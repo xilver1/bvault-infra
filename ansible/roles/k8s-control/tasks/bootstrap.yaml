@@ -3,7 +3,7 @@
   become: true
   ansible.builtin.command: >
     kubeadm init --pod-network-cidr {{ pod_cidr }}
-    --control-plane-endpoint {{ k8s_cluster_virtual_ip }}:6443
+    --control-plane-endpoint {{ k8s_cluster_virtual_ip }}:8443
   args:
     creates: /etc/kubernetes/admin.conf
 
