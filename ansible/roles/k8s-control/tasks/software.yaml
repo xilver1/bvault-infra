@@ -50,10 +50,23 @@
   meta: flush_handlers
 
 - name: Ensure keepalived is started and enabled
+  become: true
   ansible.builtin.service:
     name: keepalived
     state: started
     enabled: true
+  async: 30
+  poll: 0
+
+
+- name: Check for published virtual IP
+  changed_when: false
+  register: vip_check
+  retries: 10
+  delay: 5
+  until: vip_check.rc == 0
+  ansible.builtin.shell: ip -br addr | grep {{ k8s_cluster_virtual_ip }}
+
 
 - name: Add haproxy configuration
   become: true
