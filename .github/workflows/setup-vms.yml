@@ -103,9 +103,16 @@ jobs:
         run: |
           ansible-galaxy collection install -r requirements.yaml
 
-      - name: Deploy ansible playbooks
+      - name: Deploy k8s cluster
         env:
           ANSIBLE_HOST_KEY_CHECKING: "false"
         working-directory: ./ansible
         run: |
           ansible-playbook playbooks/k8s-cluster-setup.yaml
+
+      - name: Deploy argoCD
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: "false"
+        working-directory: ./ansible
+        run: |
+          ansible-playbook playbooks/argocd-setup.yaml

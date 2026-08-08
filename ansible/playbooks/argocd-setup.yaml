@@ -1,0 +1,6 @@
+---
+- name: Deploy ArgoCD
+  hosts: 
+  - control_plane  
+  roles: 
+  - argocd

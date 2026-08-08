@@ -1,0 +1,3 @@
+---
+- name: Install ArgoCD and fulfill prerequisites
+  ansible.builtin.import_tasks: bootstrap.yaml

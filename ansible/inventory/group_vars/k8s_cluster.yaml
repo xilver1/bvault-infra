@@ -1,3 +1,4 @@
 ansible_user: k8s
 k8s_cluster_virtual_ip: 192.168.0.196
 pod_cidr: 10.200.0.0/16
+argocd_version: v3.5.0

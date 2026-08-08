@@ -1,0 +1,7 @@
+argocd_applications:
+  - name: myapp-production
+    repo_url: https://github.com/myorg/k8s-manifests.git
+    branch: main
+    path: overlays/production
+    namespace: production
+    project: production
