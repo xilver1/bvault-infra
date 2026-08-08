@@ -31,27 +31,35 @@
     api_version: apps/v1
     kind: Deployment
     namespace: argocd
-    name: argocd-server
+    name: argocd-repo-server
     wait: true
     wait_timeout: 300
     wait_condition:
       type: Available
       status: "True"
 
-- name: Get initial admin password
+- name: Read current argocd-secret
   no_log: true
-  delegate_to: localhost
   kubernetes.core.k8s_info:
+    api_version: v1
     kind: Secret
-    namespace: argocd
-    name: argocd-initial-admin-secret
-  register: argocd_secret
+    name: argocd-secret
+    namaespace: argocd
+  register: current_argocd_secret
 
-- name: Store generated/regenerated admin password as parameter in AWS SSM parameter store
+- name: Path secret with fresh timestamp
   no_log: true
-  delegate_to: localhost
-  community.aws.ssm_parameter:
-    name: /lab/compute/argocd-secret
-    string_type: SecureString
-    value: "{{ argocd_secret.resources[0].data.password | b64decode }}"
-    region: us-east-1
+  kubernetes.core.k8s:
+      state: present
+      definition:
+        apiVersion: v1
+        kind: Secret
+        metadata:
+          namespace: argocd
+          name: argocd-secret
+        stringData:
+          admin.password: "{{ lookup('amazon.aws.aws_ssm', '/lab/compute/argocd-secret-hash') }}"
+          admin.passwordMtime: "{{ now(utc=true).strftime('%Y-%m-%dT%H:%M:%SZ') }}"
+  when: >
+    "{{ current_argocd_secret.resources[0].data | default({}))['admin.password'] | b64decode
+     != lookup('amazon.aws.aws_ssm', '/lab/compute/argocd-secret-hash') }}"
