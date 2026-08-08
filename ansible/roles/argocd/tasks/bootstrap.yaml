@@ -37,29 +37,3 @@
     wait_condition:
       type: Available
       status: "True"
-
-- name: Read current argocd-secret
-  no_log: true
-  kubernetes.core.k8s_info:
-    api_version: v1
-    kind: Secret
-    name: argocd-secret
-    namespace: argocd
-  register: current_argocd_secret
-
-- name: Path secret with fresh timestamp
-  no_log: true
-  kubernetes.core.k8s:
-      state: present
-      definition:
-        apiVersion: v1
-        kind: Secret
-        metadata:
-          namespace: argocd
-          name: argocd-secret
-        stringData:
-          admin.password: "{{ lookup('amazon.aws.aws_ssm', '/lab/compute/argocd-secret-hash') }}"
-          admin.passwordMtime: "{{ now(utc=true).strftime('%Y-%m-%dT%H:%M:%SZ') }}"
-  when: >
-    {{ current_argocd_secret.resources[0].data | default({})['admin.password'] | default('') | b64decode
-     != lookup('amazon.aws.aws_ssm', '/lab/compute/argocd-secret-hash') }}

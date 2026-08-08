@@ -1,26 +1,48 @@
 ---
-- name: Create ArgoCD Application
+- name: Create ArgoCD project
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: argoproj.io/v1alpha1
+      kind: AppProject
+      metadata:
+        name: lab-production
+        namespace: argocd
+      spec:
+        description: "Prod of rekord-export app"
+        sourceRepos:
+          - https://github.com/xilver1/lab-manifests.git
+        destinations:
+          - namespace: lab-prod
+            server: https://kubernetes.default.svc
+          - namespace: argocd
+            server: https://kubernetes.default.svc
+        clusterResourceWhitelist:
+          - group: ''
+            kind: Namespace
+
+
+- name: Create ArgoCD root app
   kubernetes.core.k8s:
     state: present
     definition:
       apiVersion: argoproj.io/v1alpha1
       kind: Application
       metadata:
-        name: "{{ item.name }}"
+        name: root-app
         namespace: argocd
       spec:
-        project: "{{ item.project | default('default') }}"
+        project: lab-production
         source:
-          repoURL: "{{ item.repo_url }}"
-          targetRevision: "{{ item.branch | default('main') }}"
-          path: "{{ item.path }}"
+          repoURL: https://github.com/xilver1/lab-manifests.git
+          targetRevision: main
+          path: apps
         destination:
           server: https://kubernetes.default.svc
-          namespace: "{{ item.namespace }}"
+          namespace: argocd
         syncPolicy:
           automated:
             prune: true
             selfHeal: true
           syncOptions:
             - CreateNamespace=true
-  loop: "{{ argocd_applications }}"
