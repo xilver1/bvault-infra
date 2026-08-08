@@ -1,5 +1,6 @@
 ---
 - name: Create ArgoCD project
+  delegate_to: localhost
   kubernetes.core.k8s:
     state: present
     definition:
@@ -23,6 +24,7 @@
 
 
 - name: Create ArgoCD root app
+  delegate_to: localhost
   kubernetes.core.k8s:
     state: present
     definition:
