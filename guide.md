@@ -61,7 +61,8 @@ We need to setup API authentication in proxmox to allow for Terraform to interac
 ### Kubernetes cluster setup
 
 1. Execute "Deploy kubernetes cluster" workflow in GIthub Actions. k8s-cluster-setup.yaml ansible playbook will be executed for this.
+   When the kubernetes cluster is up, argocd-setup.yaml playbook will be executed to create the "app of apps" root app pattern for ArgoCD.
 
-# media-server
+# observability
 
 ## Manual steps

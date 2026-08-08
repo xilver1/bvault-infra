@@ -4,9 +4,10 @@ data "aws_ssm_parameter" "ci-ssh-public-key" {
 
 locals {
   k8s_nodes = {
-    "k8s-cp-1" = { octet = 193, cores = 2, memory = 4096, role = "control" }
-    "k8s-w-1"  = { octet = 194, cores = 2, memory = 4096, role = "worker" }
-    "k8s-w-2"  = { octet = 195, cores = 2, memory = 4096, role = "worker" }
+    "k8s-cp-1" = { octet = 193, cores = 2, memory = 6144, role = "control" }
+    "k8s-w-1"  = { octet = 194, cores = 2, memory = 6144, role = "worker" }
+    "k8s-w-2"  = { octet = 195, cores = 2, memory = 6144, role = "worker" }
+    "k8s-w-3"  = { octet = 197, cores = 2, memory = 6144, role = "worker" }
   }
 }
 
@@ -47,7 +48,7 @@ resource "proxmox_virtual_environment_vm" "k8s_node" {
     interface    = "virtio0"
     iothread     = true
     discard      = "on"
-    size         = 20
+    size         = 80
   }
 
   network_device {
