@@ -1,5 +1,6 @@
 ---
 - name: Install prerequisite packages for kubernetes
+  become: true
   ansible.builtin.apt:
     pkg:
       - open-iscsi
