@@ -43,5 +43,4 @@
     url: "https://github.com/argoproj/argo-cd/releases/download/{{ argocd_version }}/argocd-linux-amd64"
     dest: /usr/local/bin/argocd
     mode: '0775'
-  args:
-    creates: /usr/local/bin/argocd
+    force: no
