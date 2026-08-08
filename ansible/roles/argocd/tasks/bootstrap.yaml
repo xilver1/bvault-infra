@@ -10,6 +10,7 @@
 
 
 - name: Download ArgoCD manifest to the cluster.
+  delegate_to: localhosts
   ansible.builtin.get_url:
     url: "https://raw.githubusercontent.com/argoproj/argo-cd/{{ argocd_version }}/manifests/core-install.yaml"
     dest: ~/core-install.yaml
