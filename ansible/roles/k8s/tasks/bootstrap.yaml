@@ -61,7 +61,6 @@
     state: present
     reload: true
 
-
 - name: Enable bridge netfilter call-iptables
   ansible.posix.sysctl:
     name: net.bridge.bridge-nf-call-iptables
@@ -179,6 +178,8 @@
     name: containerd
     state: started
     enabled: true
+
+
 
 - name: Flush handlers to restart containerd before kubeadm
   ansible.builtin.meta: flush_handlers

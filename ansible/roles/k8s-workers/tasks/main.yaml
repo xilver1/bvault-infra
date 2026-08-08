@@ -1,4 +1,16 @@
 ---
+- name: Install prerequisite packages for kubernetes
+  ansible.builtin.apt:
+    pkg:
+      - open-iscsi
+      - nfs-common
+
+- name: Ensure iscsid service is started and enabled
+  ansible.builtin.service:
+    name: iscsid
+    state: started
+    enabled: true
+
 - name: Join workers to cluster
   become: true
   ansible.builtin.command: "{{ hostvars[groups['control_plane'][0]]['join_command']['stdout'] }}"
