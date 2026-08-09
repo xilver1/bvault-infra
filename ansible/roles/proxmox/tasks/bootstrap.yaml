@@ -37,6 +37,12 @@
     pkg:
       - sanoid
 
+- name: Ensure sanoid config dir exists
+  ansible.builtin.file:
+    path: /etc/sanoid
+    state: directory
+    mode: "0644"
+
 - name: Write sanoid config
   ansible.builtin.copy:
     dest: /etc/sanoid/sanoid.conf
