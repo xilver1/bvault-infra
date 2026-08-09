@@ -31,3 +31,42 @@
 - name: Add ZFS pool if not exists
   ansible.builtin.command: zpool create -o ashift=12 -O compression=lz4 music-pool /dev/disk/by-id/ata-ST2000DM008-2UB102_WFL5S98Z
   when: zpool_existence.rc != 0 
+
+- name: Install sanoid for backups
+  ansible.builtin.apt:
+    pkg:
+      - sanoid
+
+- name: Write sanoid config
+  ansible.builtin.copy:
+    dest: /etc/sanoid/sanoid.conf
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      [music-pool/music]
+        use_template = production
+        recursive = yes
+
+      #############################
+      # templates below this line #
+      #############################
+
+      [template_production]
+              frequently = 0
+              hourly = 0
+              daily = 7
+              weekly = 4
+              monthly = 3
+              yearly = 0
+              autosnap = yes
+              autoprune = yes
+
+- name: Ensure sanoid timer is started and enabled
+  become: true
+  ansible.builtin.systemd:
+    name: sanoid.timer
+    state: started
+    enabled: true
+    daemon_reload: true
+
