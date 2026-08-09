@@ -21,3 +21,13 @@
   ansible.builtin.apt:
     update_cache: yes
     upgrade: dist
+
+- name: Check if ZFS pool exists
+  register: zpool_existence
+  ansible.builtin.command: zpool list music-pool 
+  changed_when: false
+  failed_when: false
+
+- name: Add ZFS pool if not exists
+  ansible.builtin.command: zpool create -o ashift=12 -O compression=lz4 music-pool /dev/disk/by-id/ata-ST2000DM008-2UB102_WFL5S98Z
+  when: zpool_existence.rc != 0 
