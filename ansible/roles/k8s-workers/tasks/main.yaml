@@ -7,6 +7,7 @@
       - nfs-common
 
 - name: Ensure iscsid service is started and enabled
+  become: true
   ansible.builtin.service:
     name: iscsid
     state: started
