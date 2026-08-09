@@ -22,7 +22,8 @@ validate_param() {
     case "$1" in
         bastion) ;;
         compute) ;;
-        *) echo "Usage: $0 <bastion|compute>" >&2; exit 1 ;;
+        observability) ;;
+        *) echo "Usage: $0 <bastion|compute|observability>" >&2; exit 1 ;;
     esac
 }
 
@@ -40,13 +41,18 @@ substitute_template_files() {
     case "$1" in
         bastion)
             : "${TS_AUTHKEY:?Paste the auth key into the env before running}"
-            envsubst "$VARS" < bastion/preseed.cfg.tmpl > "bastion/preseed.cfg"
-            envsubst "$VARS" < bastion/bootstrap.sh.tmpl > "bastion/bootstrap.sh"
-            outs="bastion/preseed.cfg bastion/bootstrap.sh"
+            envsubst "$VARS" < iso/bastion/preseed.cfg.tmpl > "iso/bastion/preseed.cfg"
+            envsubst "$VARS" < iso/bastion/bootstrap.sh.tmpl > "iso/bastion/bootstrap.sh"
+            outs="iso/bastion/preseed.cfg iso/bastion/bootstrap.sh"
+            ;;
+        observability)
+            envsubst "$VARS" < iso/observability/preseed.cfg.tmpl > "iso/observability/preseed.cfg"
+            envsubst "$VARS" < iso/observability/bootstrap.sh.tmpl > "iso/observability/bootstrap.sh"
+            outs="iso/observability/preseed.cfg iso/observability/bootstrap.sh"
             ;;
         compute)
-            envsubst "$VARS" < compute/answer.toml.tmpl > "compute/proxmox-auto-install-assistant-docker/secrets/pve-1/answer.toml"
-            outs="compute/answer.toml"
+            envsubst "$VARS" < iso/compute/answer.toml.tmpl > "iso/compute/proxmox-auto-install-assistant-docker/secrets/pve-1/answer.toml"
+            outs="iso/compute/answer.toml"
             ;;
     esac
 }

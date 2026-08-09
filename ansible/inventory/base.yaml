@@ -4,5 +4,5 @@ physical:
       ansible_host: 192.168.0.191
     compute:
       ansible_host: 192.168.0.190
-    media-server:
+    observability:
       ansible_host: 192.168.0.192

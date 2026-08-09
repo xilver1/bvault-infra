@@ -1,0 +1,6 @@
+---
+- name: Set up observability and backup machine
+  hosts: observability
+  remote_user: "{{ ansible_user }}"
+  roles:
+    - observability
