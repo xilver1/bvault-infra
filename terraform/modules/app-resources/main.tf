@@ -10,5 +10,4 @@ resource "aws_ecr_repository" "bvault_app_repo" {
     filter      = "latest*"
     filter_type = "WILDCARD"
   }
-
 }
