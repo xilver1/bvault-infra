@@ -21,7 +21,7 @@
     mode: "0755"
 
 - name: Copy credentials to node
-  become: trues
+  become: true
   ansible.builtin.copy:
     src: /etc/kubernetes/admin.conf
     dest: "/home/{{ ansible_user }}/.kube/config"
