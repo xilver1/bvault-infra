@@ -17,11 +17,11 @@
   roles:
     - k8s-workers
 
-- name: Set up CNI
+- name: Set up charts
   hosts:
     - control_plane
   tasks:
-    - name: Install Calico CNI
+    - name: Install charts
       ansible.builtin.import_role:
         name: k8s-control
-        tasks_from: cni
+        tasks_from: charts

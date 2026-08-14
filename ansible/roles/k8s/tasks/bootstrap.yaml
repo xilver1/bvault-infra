@@ -179,7 +179,5 @@
     state: started
     enabled: true
 
-
-
 - name: Flush handlers to restart containerd before kubeadm
   ansible.builtin.meta: flush_handlers

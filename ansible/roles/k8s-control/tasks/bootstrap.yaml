@@ -36,25 +36,27 @@
   register: join_command
   changed_when: false
 
-- name: Create cert-manager namespace
+- name: Create ESO secrets namespace
   delegate_to: localhost
   kubernetes.core.k8s:
-    name: cert-manager
+    name: external-secrets
     api_version: v1
     kind: Namespace
     state: present
 
-- name: Create intermediate CA key secret
+- name: Create AWS secret bundle for ESO
+  no_log: true
   delegate_to: localhost
   kubernetes.core.k8s:
     state: present
     definition: 
       apiVersion: v1
       kind: Secret
-      type: kubernetes.io/tls             
+      type: Opaque        
       metadata:
-        name: ca-key-intermediate
-        namespace: cert-manager    
+        name: iamra-secret-bundle
+        namespace: external-secrets    
       stringData:
-        tls.crt: "{{ lookup('amazon.aws.aws_ssm', '/lab/compute/intermediate-ca-cert' ) }}"
-        tls.key: "{{ lookup('amazon.aws.aws_ssm', '/lab/compute/intermediate-ca-key' ) }}"
+        leaf-key: "{{ lookup('amazon.aws.aws_ssm', '/lab/compute/leaf-key' ) }}"
+        leaf-cert: "{{ lookup('amazon.aws.aws_ssm', '/lab/compute/leaf-cert' ) }}"
+        intermediate-ca-cert: "{{ lookup('amazon.aws.aws_ssm', '/lab/compute/intermediate-ca-cert' ) }}"
