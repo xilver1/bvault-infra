@@ -7,14 +7,14 @@
       apiVersion: argoproj.io/v1alpha1
       kind: AppProject
       metadata:
-        name: lab-production
+        name: bvault-production
         namespace: argocd
       spec:
         description: "Prod of rekord-export app"
         sourceRepos:
-          - https://github.com/xilver1/lab-manifests.git
+          - https://github.com/xilver1/bvault-manifests.git
         destinations:
-          - namespace: lab-prod
+          - namespace: bvault-prod
             server: https://kubernetes.default.svc
           - namespace: argocd
             server: https://kubernetes.default.svc
@@ -34,9 +34,9 @@
         name: root-app
         namespace: argocd
       spec:
-        project: lab-production
+        project: bvault-production
         source:
-          repoURL: https://github.com/xilver1/lab-manifests.git
+          repoURL: https://github.com/xilver1/bvault-manifests.git
           targetRevision: main
           path: apps
         destination:

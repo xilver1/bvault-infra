@@ -35,3 +35,24 @@
   ansible.builtin.command: kubeadm token create --print-join-command
   register: join_command
   changed_when: false
+
+- name: Create cert-manager namespace
+  kubernetes.core.k8s:
+    name: cert-manager
+    api_version: v1
+    kind: Namespace
+    state: present
+
+- name: Create intermediate CA key secret
+  kubernetes.core.k8s:
+    state: present
+    definition: 
+      apiVersion: v1
+      kind: Secret
+      type: kubernetes.io/tls             
+      metadata:
+        name: ca-key-intermediate
+        namespace: cert-manager    
+      stringData:
+        tls.crt: "{{ lookup('amazon.aws.aws_ssm', '/lab/compute/intermediate-ca-cert' ) }}"
+        tls.key: "{{ lookup('amazon.aws.aws_ssm', '/lab/compute/intermediate-ca-key' ) }}"
