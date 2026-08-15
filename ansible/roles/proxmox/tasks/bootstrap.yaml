@@ -21,6 +21,9 @@
   ansible.builtin.apt:
     update_cache: yes
     upgrade: dist
+
+- name: Install nfs-kernel-server
+  ansible.builtin.apt:
     pkg:
       - nfs-kernel-server
 
