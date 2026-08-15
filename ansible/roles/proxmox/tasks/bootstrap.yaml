@@ -34,8 +34,18 @@
   failed_when: false
 
 - name: Add ZFS pool if not exists
-  ansible.builtin.command: zpool create -o ashift=12 -O compression=lz4 music-pool/music /dev/disk/by-id/ata-ST2000DM008-2UB102_WFL5S98Z
+  ansible.builtin.command: zpool create -o ashift=12 -O compression=lz4 music-pool /dev/disk/by-id/ata-ST2000DM008-2UB102_WFL5S98Z
   when: zpool_existence.rc != 0
+
+- name: Check if music dataset exists
+  ansible.builtin.command: zfs list music-pool/music
+  register: music_dataset
+  changed_when: false
+  failed_when: false
+
+- name: Create music dataset if not exists
+  ansible.builtin.command: zfs create music-pool/music
+  when: music_dataset.rc != 0
 
 - name: Configure NFS export for music dataset
   ansible.builtin.blockinfile:
