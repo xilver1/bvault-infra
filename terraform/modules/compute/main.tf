@@ -5,9 +5,9 @@ data "aws_ssm_parameter" "ci-ssh-public-key" {
 locals {
   k8s_nodes = {
     "k8s-cp-1" = { octet = 193, cores = 2, memory = 6144, role = "control" }
-    "k8s-w-1"  = { octet = 194, cores = 2, memory = 6144, role = "worker" }
-    "k8s-w-2"  = { octet = 195, cores = 2, memory = 6144, role = "worker" }
-    "k8s-w-3"  = { octet = 197, cores = 2, memory = 6144, role = "worker" }
+    "k8s-w-1"  = { octet = 194, cores = 2, memory = 8192, role = "worker" }
+    "k8s-w-2"  = { octet = 195, cores = 2, memory = 8192, role = "worker" }
+    "k8s-w-3"  = { octet = 197, cores = 2, memory = 8192, role = "worker" }
   }
 }
 
