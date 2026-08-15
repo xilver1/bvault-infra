@@ -18,3 +18,17 @@
   ansible.builtin.command: "{{ hostvars[groups['control_plane'][0]]['join_command']['stdout'] }}"
   args:
     creates: /etc/kubernetes/kubelet.conf
+
+- name: Label worker node as storage node for Longhorn
+  become: true
+  delegate_to: "{{ groups['control_plane'][0] }}"
+  kubernetes.core.k8s:
+    state: present
+    kubeconfig: /etc/kubernetes/admin.conf
+    definition:
+      apiVersion: v1
+      kind: Node
+      metadata:
+        name: "{{ inventory_hostname }}"
+        labels:
+          storage-node: "true"
