@@ -4,7 +4,7 @@
   kubernetes.core.helm_repository:
     name: projectcalico
     repo_url: https://docs.tigera.io/calico/charts
-    
+
 - name: Install Calico CRDs
   delegate_to: localhost
   ansible.builtin.shell: >
@@ -19,10 +19,23 @@
     chart_ref: projectcalico/tigera-operator
     chart_version: v3.32.1
     release_namespace: tigera-operator
-    create_namespace : true
+    create_namespace: true
     values:
       installation:
         calicoNetwork:
           ipPools:
             - cidr: "{{ pod_cidr }}"
               encapsulation: VXLAN
+
+- name: Label worker node as storage node for Longhorn
+  delegate_to: localhost
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Node
+      metadata:
+        name: "{{ item }}"
+        labels:
+          storage-node: "true"
+  loop: "{{ groups['workers'] }}"
