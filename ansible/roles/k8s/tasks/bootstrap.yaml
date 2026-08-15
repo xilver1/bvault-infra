@@ -84,6 +84,7 @@
       - ca-certificates
       - curl
       - gpg
+      - nfs-common
 
 - name: Ensure keyrings dir exists
   ansible.builtin.file:
