@@ -15,7 +15,7 @@
           - https://github.com/xilver1/bvault-manifests.git
           - https://charts.external-secrets.io
           - https://github.com/external-secrets/external-secrets.git
-          - https://charts.longhorn.io
+          - https://charts.longhorn.io/
         destinations:
           - namespace: bvault-prod
             server: https://kubernetes.default.svc
