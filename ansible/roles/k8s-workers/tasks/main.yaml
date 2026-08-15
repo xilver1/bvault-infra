@@ -21,7 +21,7 @@
 
 - name: Label worker node as storage node for Longhorn
   become: true
-  delegate_to: "{{ groups['control_plane'][0] }}"
+  delegate_to: localhost
   kubernetes.core.k8s:
     state: present
     kubeconfig: /etc/kubernetes/admin.conf
