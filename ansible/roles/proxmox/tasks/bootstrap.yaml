@@ -43,6 +43,14 @@
   changed_when: false
   failed_when: false
 
+- name: Set music-pool/music permissions
+  ansible.builtin.file:
+    state: directory
+    path: /music-pool/music
+    owner: "1001"
+    group: "1001"
+    mode: "2775"
+
 - name: Create music dataset if not exists
   ansible.builtin.command: zfs create music-pool/music
   when: music_dataset.rc != 0
