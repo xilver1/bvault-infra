@@ -164,13 +164,7 @@
     owner: root
     group: root
     mode: "0644"
-    content: "{{ containerd_default.stdout }}"
-
-- name: Use systemd cgroup driver
-  ansible.builtin.replace:
-    path: /etc/containerd/config.toml
-    regexp: 'SystemdCgroup = false'
-    replace: 'SystemdCgroup = true'
+    content: "{{ containerd_default.stdout | regex_replace('SystemdCgroup = false', 'SystemdCgroup = true') }}"
   notify: restart containerd
 
 - name: Ensure containerd service is started and enabled
