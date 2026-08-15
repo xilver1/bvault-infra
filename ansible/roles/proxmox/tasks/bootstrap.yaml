@@ -21,32 +21,31 @@
   ansible.builtin.apt:
     update_cache: yes
     upgrade: dist
+    pkg:
+      - nfs-kernel-server
 
 - name: Check if ZFS pool exists
   register: zpool_existence
-  ansible.builtin.command: zpool list music-pool
+  ansible.builtin.command: zpool list music-pool/music
   changed_when: false
   failed_when: false
 
 - name: Add ZFS pool if not exists
-  ansible.builtin.command: zpool create -o ashift=12 -O compression=lz4 music-pool /dev/disk/by-id/ata-ST2000DM008-2UB102_WFL5S98Z
+  ansible.builtin.command: zpool create -o ashift=12 -O compression=lz4 music-pool/music /dev/disk/by-id/ata-ST2000DM008-2UB102_WFL5S98Z
   when: zpool_existence.rc != 0
 
-- name: Install nfs-kernel-server
-  ansible.builtin.apt:
-    pkg:
-      - nfs-kernel-server
-
-- name: Configure NFS export for music-pool
-  ansible.builtin.lineinfile:
+- name: Configure NFS export for music dataset
+  ansible.builtin.blockinfile:
     path: /etc/exports
-    line: "/music-pool 192.168.0.0/24(rw,sync,no_subtree_check)"
-    create: yes
-  register: nfs_export
+    create: true
+    marker: "# {mark} ANSIBLE MANAGED music-pool/music"
+    block: |
+      /music-pool/music 192.168.0.192/26(rw,sync,no_subtree_check,root_squash)
+  notify: reload nfs exports
 
-- name: Reload NFS exports
-  ansible.builtin.command: exportfs -ra
-  when: nfs_export.changed
+- name: Disable ZFS native NFS share (we manage /etc/exports)
+  ansible.builtin.command: zfs set sharenfs=off music-pool/music
+  changed_when: false
 
 - name: Install sanoid for backups
   ansible.builtin.apt:
