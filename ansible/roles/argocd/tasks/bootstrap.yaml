@@ -47,6 +47,7 @@
     force: no
 
 - name: Create longhorn-system namespace
+  delegate_to: localhost
   kubernetes.core.k8s:
     name: longhorn-system
     api_version: v1
