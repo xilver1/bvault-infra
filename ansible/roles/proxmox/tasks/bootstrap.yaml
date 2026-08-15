@@ -47,6 +47,18 @@
   ansible.builtin.command: zfs create music-pool/music
   when: music_dataset.rc != 0
 
+- name: Create export-builder store directories owned by app UID
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "1001"
+    group: "1001"
+    mode: "2775"
+  loop:
+    - /music-pool/music/raw
+    - /music-pool/music/artifacts
+    - /music-pool/music/staging
+
 - name: Configure NFS export for music dataset
   ansible.builtin.blockinfile:
     path: /etc/exports
