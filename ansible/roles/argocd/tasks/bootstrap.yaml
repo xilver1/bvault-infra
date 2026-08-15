@@ -13,7 +13,7 @@
   ansible.builtin.get_url:
     url: "https://raw.githubusercontent.com/argoproj/argo-cd/{{ argocd_version }}/manifests/core-install.yaml"
     dest: ~/core-install.yaml
-    mode: '0664'
+    mode: "0664"
 
 - name: Install ArgoCD
   delegate_to: localhost
@@ -43,5 +43,12 @@
   ansible.builtin.get_url:
     url: "https://github.com/argoproj/argo-cd/releases/download/{{ argocd_version }}/argocd-linux-amd64"
     dest: /usr/local/bin/argocd
-    mode: '0775'
+    mode: "0775"
     force: no
+
+- name: Create longhorn-system namespace
+  kubernetes.core.k8s:
+    name: longhorn-system
+    api_version: v1
+    kind: Namespace
+    state: present
