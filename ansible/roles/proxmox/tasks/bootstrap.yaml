@@ -29,7 +29,7 @@
 
 - name: Check if ZFS pool exists
   register: zpool_existence
-  ansible.builtin.command: zpool list music-pool/music
+  ansible.builtin.command: zpool list music-pool
   changed_when: false
   failed_when: false
 
