@@ -46,6 +46,8 @@
             kind: CSIDriver
           - group: storage.k8s.io
             kind: CSINode
+          - group: scheduling.k8s.io
+            kind: PriorityClass
 
 - name: Create ArgoCD root app
   delegate_to: localhost
