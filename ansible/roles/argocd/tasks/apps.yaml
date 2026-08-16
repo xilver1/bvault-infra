@@ -54,6 +54,8 @@
             kind: CSINode
           - group: scheduling.k8s.io
             kind: PriorityClass
+          - group: networking.k8s.io
+            kind: IngressClass
 
 - name: Create ArgoCD root app
   delegate_to: localhost
