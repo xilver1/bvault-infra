@@ -23,6 +23,12 @@
             server: https://kubernetes.default.svc
           - namespace: longhorn-system
             server: https://kubernetes.default.svc
+          - namespace: metallb-system
+            server: https://kubernetes.default.svc
+          - namespace: ingress-nginx
+            server: https://kubernetes.default.svc
+          - namespace: default
+            server: https://kubernetes.default.svc
         clusterResourceWhitelist:
           - group: ""
             kind: Namespace
