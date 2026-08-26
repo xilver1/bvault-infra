@@ -76,7 +76,7 @@
 
       [Install]
       WantedBy=multi-user.target
-  notify: Restart Prometheus
+  notify: restart prometheus
 
 - name: Ensure Prometheus service is started and enabled
   ansible.builtin.systemd:

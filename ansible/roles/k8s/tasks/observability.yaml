@@ -1,0 +1,25 @@
+- name: Deploy Prometheus Agent (Pushes metrics out)
+  kubernetes.core.helm:
+    name: prometheus-agent
+    chart_ref: prometheus-community/prometheus
+    release_namespace: monitoring
+    values:
+      # We disable server, alertmanager, and pushgateway because we only want the agent
+      alertmanager: { enabled: false }
+      server: { enabled: false }
+      pushgateway: { enabled: false }
+      # The agent mode strictly collects and forwards metrics
+      agent:
+        enabled: true
+        remoteWrite:
+          - url: "http://{{ hostvars['observability']['ansible_host'] }}:9090/api/v1/write"
+
+- name: Deploy Promtail (Pushes logs out)
+  kubernetes.core.helm:
+    name: promtail
+    chart_ref: grafana/promtail
+    release_namespace: monitoring
+    values:
+      config:
+        clients:
+          - url: "http://{{ hostvars['observability']['ansible_host'] }}:3100/loki/api/v1/push"

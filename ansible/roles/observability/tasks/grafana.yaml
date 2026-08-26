@@ -1,0 +1,33 @@
+---
+- name: Install required packages
+  ansible.builtin.apt:
+    name:
+      - apt-transport-https
+      - python3-debian
+      - wget
+      - gnupg
+    state: present
+    update_cache: yes
+  become: true
+
+- name: Add Grafana APT repository
+  ansible.builtin.deb822_repository:
+    name: grafana
+    types:
+      - deb
+    uris: https://apt.grafana.com
+    suites:
+      - stable
+    components:
+      - main
+    signed_by: https://apt.grafana.com/gpg-full.key
+    state: present
+  become: true
+
+- name: Install Grafana
+  ansible.builtin.apt:
+    name: "grafana{% if grafana_version != 'latest' %}={{ grafana_version }}{% endif %}"
+    state: "{{ 'present' if grafana_version != 'latest' else 'latest' }}"
+    update_cache: yes
+  become: true
+  notify: restart grafana

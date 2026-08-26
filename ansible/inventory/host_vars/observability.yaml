@@ -1,3 +1,51 @@
-prometheus_dir_conf:
-prometheus_dir_data: 
-prometheus_version: 
+# Prometheus
+prometheus_dir_conf: /home/ansible/.config/prometheus
+prometheus_dir_data: /var/opt/prometheus_data
+prometheus_version: 3.14.0
+
+# Grafana
+grafana_version: "latest"
+
+# Network settings
+grafana_http_port: 3000
+grafana_domain: "{{ ansible_host }}"
+grafana_root_url: "http://{{ grafana_domain }}:{{ grafana_http_port }}"
+
+# Security settings
+grafana_admin_user: "admin"
+grafana_admin_password: "changeme"
+grafana_secret_key: "SW2YcwTIb9zpOOhoPsMm"
+grafana_disable_gravatar: true
+grafana_allow_sign_up: false
+
+# Database settings (default: sqlite3)
+grafana_database_type: "sqlite3"
+grafana_database_host: ""
+grafana_database_name: "grafana"
+grafana_database_user: ""
+grafana_database_password: ""
+
+# SMTP settings for email alerts
+grafana_smtp_enabled: false
+
+# Datasources to provision
+grafana_datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://{{ ansible_host }}:9090
+    is_default: true
+    editable: false
+
+# Plugins to install
+grafana_plugins:
+  - grafana-clock-panel
+  - grafana-polystat-panel
+
+# Log settings
+grafana_log_mode: "console file"
+grafana_log_level: "info"
+
+# Anonymous access
+grafana_anonymous_enabled: false
+grafana_anonymous_org_role: "Viewer"

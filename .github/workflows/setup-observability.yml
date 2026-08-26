@@ -1,0 +1,64 @@
+name: Setup observability and backups box
+on: workflow_dispatch
+
+defaults:
+  run:
+    shell: bash
+    working-directory: ./terraform
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy-observability:
+    name: Deploy observability and backups functionality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+
+      - name: Satisfy K8s and Helm Ansible module dependencies for python
+        run: |
+          pip install kubernetes
+          pipx inject ansible-core kubernetes boto3 botocore
+
+      - name: Obtain temporary AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::854469103070:role/lab-infra-terraform
+          aws-region: us-east-1
+
+      - name: Load CI OAuth creds from SSM to access Tailnet
+        run: |
+          ID=$(aws ssm get-parameter --name /lab/tailscale/ci-oauth-client-id --query Parameter.Value --output text)
+          SECRET=$(aws ssm get-parameter --name /lab/tailscale/ci-oauth-client-secret --with-decryption --query Parameter.Value --output text)
+          echo "::add-mask::$SECRET"
+          echo "CI_OAUTH_ID=$ID" >> "$GITHUB_ENV"
+          echo "CI_OAUTH_SECRET=$SECRET" >> "$GITHUB_ENV"
+
+      - name: Retrieve and load pre-generated SSH private key
+        run: |
+          mkdir -p ~/.ssh && chmod 0700 ~/.ssh
+          aws ssm get-parameter --name /lab/ci/ssh-private-key --with-decryption --query Parameter.Value --output text > ~/.ssh/id_ed25519 && chmod 0600 ~/.ssh/id_ed25519
+          aws ssm get-parameter --name /lab/ci/ssh-public-key --query Parameter.Value --output text > ~/.ssh/id_ed25519.pub && chmod 0600 ~/.ssh/id_ed25519.pub
+
+      - name: Tailnet access and test connectivity
+        uses: tailscale/github-action@v4
+        with:
+          oauth-client-id: ${{ env.CI_OAUTH_ID }}
+          oauth-secret: ${{ env.CI_OAUTH_SECRET }}
+          tags: tag:ci
+          ping: 192.168.0.191
+
+      - name: Install external Ansible collections
+        working-directory: ./ansible
+        run: |
+          ansible-galaxy collection install -r requirements.yaml
+
+      - name: Deploy observability role
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: "false"
+        working-directory: ./ansible
+        run: |
+          ansible-playbook playbooks/observability-setup.yaml

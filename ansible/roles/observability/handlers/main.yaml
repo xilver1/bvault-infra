@@ -1,0 +1,12 @@
+---
+- name: restart prometheus
+  become: true
+  ansible.builtin.service:
+    name: prometheus
+    state: restarted
+
+- name: restart grafana
+  become: true
+  ansible.builtin.service:
+    name: grafana
+    state: restarted

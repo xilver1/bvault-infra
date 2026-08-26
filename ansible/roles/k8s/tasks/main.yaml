@@ -1,3 +1,7 @@
 - name: K8s node config setup
   become: true
   ansible.builtin.import_tasks: bootstrap.yaml
+
+- name: Set up observability agents
+  become: true
+  ansible.builtin.import_tasks: observability.yaml
