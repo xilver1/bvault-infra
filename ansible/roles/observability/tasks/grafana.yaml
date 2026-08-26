@@ -8,7 +8,6 @@
       - gnupg
     state: present
     update_cache: yes
-  become: true
 
 - name: Add Grafana APT repository
   ansible.builtin.deb822_repository:
@@ -22,12 +21,51 @@
       - main
     signed_by: https://apt.grafana.com/gpg-full.key
     state: present
-  become: true
 
-- name: Install Grafana
+- name: Install Grafana and Loki
   ansible.builtin.apt:
-    name: "grafana{% if grafana_version != 'latest' %}={{ grafana_version }}{% endif %}"
+    pkg:
+      - "grafana{% if grafana_version != 'latest' %}={{ grafana_version }}{% endif %}"
+      - loki
     state: "{{ 'present' if grafana_version != 'latest' else 'latest' }}"
     update_cache: yes
+  notify:
+    - restart grafana
+    - restart loki
+
+- name: Apply main Grafana configuration (grafana.ini)
+  ansible.builtin.template:
+    src: templates/grafana.ini.j2
+    dest: /etc/grafana/grafana.ini
+    owner: root
+    group: grafana
+    mode: "0640"
   become: true
   notify: restart grafana
+
+- name: Provision data sources into Grafana
+  ansible.builtin.copy:
+    dest: /etc/grafana/provisioning/datasources/automatic.yaml
+    owner: root
+    group: grafana
+    mode: "0640"
+    content: |
+      apiVersion: 1
+      datasources:
+        {% for ds in grafana_datasources %}
+        - name: {{ ds.name }}
+          type: {{ ds.type }}
+          access: {{ ds.access }}
+          url: {{ ds.url }}
+          isDefault: {{ ds.is_default | lower }}
+          editable: {{ ds.editable | lower }}
+        {% endfor %}
+  become: true
+  notify: restart grafana
+
+- name: Ensure Loki service is started and enabled
+  ansible.builtin.systemd:
+    name: loki
+    state: started
+    enabled: true
+    daemon_reload: true

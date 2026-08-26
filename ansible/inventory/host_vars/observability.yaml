@@ -12,9 +12,9 @@ grafana_domain: "{{ ansible_host }}"
 grafana_root_url: "http://{{ grafana_domain }}:{{ grafana_http_port }}"
 
 # Security settings
-grafana_admin_user: "admin"
-grafana_admin_password: "changeme"
-grafana_secret_key: "SW2YcwTIb9zpOOhoPsMm"
+grafana_admin_user: "{{ lookup('amazon.aws.aws_ssm', '/lab/observability/grafana-admin-user' ) }}"
+grafana_admin_password: "{{ lookup('amazon.aws.aws_ssm', '/lab/observability/grafana-admin-password' ) }}"
+grafana_secret_key: "{{ lookup('amazon.aws.aws_ssm', '/lab/observability/grafana-secret-key' ) }}"
 grafana_disable_gravatar: true
 grafana_allow_sign_up: false
 
@@ -33,8 +33,14 @@ grafana_datasources:
   - name: Prometheus
     type: prometheus
     access: proxy
-    url: http://{{ ansible_host }}:9090
+    url: http://127.0.0.1:9090
     is_default: true
+    editable: false
+  - name: Loki
+    type: loki
+    access: proxy
+    url: http://127.0.0.1:3100
+    is_default: false
     editable: false
 
 # Plugins to install

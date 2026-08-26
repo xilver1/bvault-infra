@@ -1,4 +1,21 @@
+- name: Add Helm repositories
+  delegate_to: localhost
+  kubernetes.core.helm_repository:
+    name: "{{ item.name }}"
+    repo_url: "{{ item.url }}"
+  loop:
+    - { name: "prometheus-community", url: "https://github.io" }
+    - { name: "grafana", url: "https://github.io" }
+
+- name: Create monitoring namespace
+  delegate_to: localhost
+  kubernetes.core.k8s:
+    name: monitoring
+    kind: Namespace
+    state: present
+
 - name: Deploy Prometheus Agent (Pushes metrics out)
+  delegate_to: localhost
   kubernetes.core.helm:
     name: prometheus-agent
     chart_ref: prometheus-community/prometheus
@@ -14,12 +31,39 @@
         remoteWrite:
           - url: "http://{{ hostvars['observability']['ansible_host'] }}:9090/api/v1/write"
 
-- name: Deploy Promtail (Pushes logs out)
+- name: Deploy Grafana Alloy (Logs)
+  delegate_to: localhost
   kubernetes.core.helm:
-    name: promtail
-    chart_ref: grafana/promtail
+    name: grafana-alloy
+    chart_ref: grafana/alloy
     release_namespace: monitoring
     values:
-      config:
-        clients:
-          - url: "http://{{ hostvars['observability']['ansible_host'] }}:3100/loki/api/v1/push"
+      # Runs Alloy on every node (just like a DaemonSet) to grab all system logs
+      alloy:
+        stabilityLevel: "public"
+        # The configuration script (Alloy syntax) telling it to look for K8s logs and send them to Loki
+        configMap:
+          create: true
+          content: |
+            local.file_match "kubernetes_pods" {
+              path_targets = [{"__address__" = "localhost", "__path__" = "/var/log/pods/*/*/*.log"}]
+            }
+
+            loki.source.file "pod_logs" {
+              targets    = local.file_match "kubernetes_pods".targets
+              forward_to = [loki.write.endpoint.receiver]
+            }
+
+            loki.write "endpoint" {
+              endpoint {
+                url = "http://{{ hostvars['observability']['ansible_host'] }}:3100/loki/api/v1/push"
+              }
+            }
+      # This allows Grafana Alloy to run on your Control Plane nodes
+      tolerations:
+        - key: "node-role.kubernetes.io/control-plane"
+          operator: "Exists"
+          effect: "NoSchedule"
+        - key: "node-role.kubernetes.io/master"
+          operator: "Exists"
+          effect: "NoSchedule"

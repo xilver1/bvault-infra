@@ -73,6 +73,7 @@
         --storage.tsdb.path={{ prometheus_dir_data }}/ \
         --web.console.templates={{ prometheus_dir_conf }}/consoles \
         --web.console.libraries={{ prometheus_dir_conf }}/console_libraries
+        --enable-feature=remote-write-receiver
 
       [Install]
       WantedBy=multi-user.target

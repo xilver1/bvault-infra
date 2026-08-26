@@ -1,6 +1,10 @@
 ---
 - name: Install and configure prometheus
-  ansible.bultin.import_task: prometheus.yaml
+  ansible.bultin.import_tasks: prometheus.yaml
+
+- name: Install and configure grafana and alloy
+  ansible.bultin.import_tasks: grafana.yaml
+  become: true
 
 - name: Install and configure borgbackup
-  ansible.builtin.import_task: backups.yaml
+  ansible.builtin.import_tasks: backups.yaml

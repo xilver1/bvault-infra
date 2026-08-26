@@ -1,0 +1,32 @@
+[server]
+http_port = {{ grafana_http_port }}
+domain = {{ grafana_domain }}
+root_url = {{ grafana_root_url }}
+
+[security]
+admin_user = {{ grafana_admin_user }}
+admin_password = "{{ grafana_admin_password }}"
+secret_key = "{{ grafana_secret_key }}"
+allow_embedding = false
+
+[users]
+allow_sign_up = {{ grafana_allow_sign_up | lower }}
+disable_gravatar = {{ grafana_disable_gravatar | lower }}
+
+[database]
+type = {{ grafana_database_type }}
+host = {{ grafana_database_host }}
+name = {{ grafana_database_name }}
+user = {{ grafana_database_user }}
+password = {{ grafana_database_password }}
+
+[smtp]
+enabled = {{ grafana_smtp_enabled | lower }}
+
+[log]
+mode = {{ grafana_log_mode }}
+level = {{ grafana_log_level }}
+
+[auth.anonymous]
+enabled = {{ grafana_anonymous_enabled | lower }}
+org_role = {{ grafana_anonymous_org_role }}
