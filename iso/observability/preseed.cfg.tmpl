@@ -1,5 +1,5 @@
 #_preseed_V1
-# Bastion / Tailscale subnet router - Debian 13 (trixie)
+# Observabilty - Debian 13 (trixie)
 
 ### Localization
 d-i debian-installer/locale string en_US.UTF-8
@@ -13,9 +13,9 @@ d-i netcfg/get_netmask string 255.255.255.0
 d-i netcfg/get_gateway string 192.168.0.1
 d-i netcfg/get_nameservers string 192.168.0.1
 d-i netcfg/confirm_static boolean true
-d-i netcfg/get_hostname string bastion
+d-i netcfg/get_hostname string observability
 d-i netcfg/get_domain string internal
-d-i netcfg/hostname string bastion
+d-i netcfg/hostname string observability
 d-i netcfg/wireless_wep string
 
 ### Mirror
@@ -39,7 +39,7 @@ d-i clock-setup/ntp boolean true
 
 ### Partitioning - LVM, everything in one filesystem
 d-i partman-auto/method string lvm
-d-i partman-auto/disk string /dev/disk/by-id/ata-512GB_SSD_MP28B87204152
+d-i partman-auto/disk string /dev/disk/by-id/ata-EMTEC_X250_512GB_TD2547X250F0107
 d-i partman-auto-lvm/guided_size string max
 d-i partman-lvm/device_remove_lvm boolean true
 d-i partman-md/device_remove_md boolean true
