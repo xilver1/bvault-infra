@@ -64,7 +64,7 @@ popularity-contest popularity-contest/participate boolean false
 
 ### Bootloader
 d-i grub-installer/only_debian boolean true
-d-i grub-installer/bootdev string default
+d-i grub-installer/bootdev string /dev/disk/by-id/ata-EMTEC_X250_512GB_TD2547X250F0107
 
 ### Finish
 d-i finish-install/reboot_in_progress note
