@@ -1,6 +1,6 @@
 ---
 - name: Install borgbackup
+  become: true
   ansible.builtin.apt:
     pkg:
       - borgbackup
-  
