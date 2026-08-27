@@ -73,7 +73,7 @@
               }
             }
 
-            // Relabel to extract K8s metadata and synthesize the log file path
+            // Relabel to extract standard K8s metadata
             discovery.relabel "pod_logs" {
               targets = discovery.kubernetes.pods.targets
 
@@ -93,7 +93,6 @@
                 source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
                 target_label  = "app"
               }
-              
             }
 
             // Let Alloy natively figure out where the log files are for these targets

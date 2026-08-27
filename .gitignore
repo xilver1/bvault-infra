@@ -5,3 +5,5 @@
 *.tfstate.*
 crash.log
 *.tfvars
+preseed.cfg
+bootstrap.sh
