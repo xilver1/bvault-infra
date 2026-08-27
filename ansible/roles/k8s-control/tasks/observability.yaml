@@ -94,18 +94,10 @@
                 target_label  = "app"
               }
               
-              // Synthesize the actual file path on disk
-              rule {
-                source_labels = ["__meta_kubernetes_namespace", "__meta_kubernetes_pod_name", "__meta_kubernetes_pod_uid", "__meta_kubernetes_pod_container_name"]
-                separator     = "_"
-                regex         = "([^_]+)_([^_]+)_([^_]+)_([^_]+)"
-                replacement   = "/var/log/pods/$1_$2_$3/$4/*.log"
-                target_label  = "__path__"
-              }
             }
 
-            // Read the files identified by the relabeled targets
-            loki.source.file "pod_logs" {
+            // Let Alloy natively figure out where the log files are for these targets
+            loki.source.kubernetes "pod_logs" {
               targets    = discovery.relabel.pod_logs.output
               forward_to = [loki.write.endpoint.receiver]
             }
