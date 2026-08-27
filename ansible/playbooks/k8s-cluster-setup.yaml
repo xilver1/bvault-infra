@@ -1,6 +1,6 @@
 ---
 - name: Setup general config for K8s cluster
-  hosts: 
+  hosts:
     - k8s_cluster
   roles:
     - k8s
@@ -25,3 +25,12 @@
       ansible.builtin.import_role:
         name: k8s-control
         tasks_from: charts
+
+- name: Set up observability
+  hosts:
+    - control_plane
+  tasks:
+    - name: Install charts
+      ansible.builtin.import_role:
+        name: k8s-control
+        tasks_from: observability

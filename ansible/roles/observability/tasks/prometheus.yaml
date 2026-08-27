@@ -6,7 +6,7 @@
 
 - name: Create prometheus user
   ansible.builtin.user:
-    name: prometheus
+    name: "{{ prometheus_user }}"
     system: true
     shell: /bin/false
     create_home: false
@@ -15,8 +15,8 @@
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
-    owner: prometheus
-    group: prometheus
+    owner: "{{ prometheus_user }}"
+    group: "{{ prometheus_user }}"
     mode: "0755"
   loop:
     - "{{ prometheus_dir_conf }}"
@@ -24,7 +24,7 @@
 
 - name: Download and unpack Prometheus binary
   ansible.builtin.unarchive:
-    src: "https://github.com/prometheus/prometheus/releases/download/{{ prometheus_version }}/prometheus-{{ prometheus_version }}.linux-amd64.tar.gz"
+    src: "https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_version }}/prometheus-{{ prometheus_version }}.linux-amd64.tar.gz"
     dest: /tmp
     remote_src: true
     creates: "/tmp/prometheus-{{ prometheus_version }}.linux-amd64"
@@ -72,8 +72,8 @@
         --config.file={{ prometheus_dir_conf }}/prometheus.yml \
         --storage.tsdb.path={{ prometheus_dir_data }}/ \
         --web.console.templates={{ prometheus_dir_conf }}/consoles \
-        --web.console.libraries={{ prometheus_dir_conf }}/console_libraries
-        --enable-feature=remote-write-receiver
+        --web.console.libraries={{ prometheus_dir_conf }}/console_libraries \
+        --web.enable-remote-write-receiver
 
       [Install]
       WantedBy=multi-user.target

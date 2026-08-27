@@ -24,13 +24,18 @@
     chart_ref: prometheus-community/prometheus
     release_namespace: monitoring
     values:
-      # We disable server, alertmanager, and pushgateway because we only want the agent
+      # We disable alertmanager and pushgateway because we only want the agent
       alertmanager: { enabled: false }
-      server: { enabled: false }
-      pushgateway: { enabled: false }
+      prometheus-pushgateway: { enabled: false }
+      # Prevent crash loop in agent mode by removing rule_files which are invalid
+      serverFiles:
+        prometheus.yml: {}
       # The agent mode strictly collects and forwards metrics
-      agent:
-        enabled: true
+      server:
+        defaultFlagsOverride:
+          - --enable-feature=agent
+          - --config.file=/etc/config/prometheus.yml
+          - --storage.agent.path=/data
         remoteWrite:
           - url: "http://{{ hostvars['observability']['ansible_host'] }}:9090/api/v1/write"
 
@@ -43,7 +48,8 @@
     values:
       # Runs Alloy on every node (just like a DaemonSet) to grab all system logs
       alloy:
-        stabilityLevel: "public"
+        mounts:
+          varlog: true
         # The configuration script (Alloy syntax) telling it to look for K8s logs and send them to Loki
         configMap:
           create: true
@@ -53,7 +59,7 @@
             }
 
             loki.source.file "pod_logs" {
-              targets    = local.file_match "kubernetes_pods".targets
+              targets    = local.file_match.kubernetes_pods.targets
               forward_to = [loki.write.endpoint.receiver]
             }
 
@@ -63,10 +69,11 @@
               }
             }
       # This allows Grafana Alloy to run on your Control Plane nodes
-      tolerations:
-        - key: "node-role.kubernetes.io/control-plane"
-          operator: "Exists"
-          effect: "NoSchedule"
-        - key: "node-role.kubernetes.io/master"
-          operator: "Exists"
-          effect: "NoSchedule"
+      controller:
+        tolerations:
+          - key: "node-role.kubernetes.io/control-plane"
+            operator: "Exists"
+            effect: "NoSchedule"
+          - key: "node-role.kubernetes.io/master"
+            operator: "Exists"
+            effect: "NoSchedule"
