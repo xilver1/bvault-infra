@@ -51,8 +51,6 @@
     mode: "0755"
   loop:
     - prometheus.yml
-    - consoles
-    - console_libraries
 
 - name: Create systemd service file
   ansible.builtin.copy:
@@ -71,8 +69,6 @@
       ExecStart=/usr/local/bin/prometheus \
         --config.file={{ prometheus_dir_conf }}/prometheus.yml \
         --storage.tsdb.path={{ prometheus_dir_data }}/ \
-        --web.console.templates={{ prometheus_dir_conf }}/consoles \
-        --web.console.libraries={{ prometheus_dir_conf }}/console_libraries \
         --web.enable-remote-write-receiver
 
       [Install]

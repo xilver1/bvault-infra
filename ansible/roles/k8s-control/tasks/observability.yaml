@@ -33,7 +33,7 @@
       # The agent mode strictly collects and forwards metrics
       server:
         defaultFlagsOverride:
-          - --enable-feature=agent
+          - --agent
           - --config.file=/etc/config/prometheus.yml
           - --storage.agent.path=/data
         remoteWrite:
