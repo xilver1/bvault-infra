@@ -1,5 +1,5 @@
 # Prometheus
-prometheus_dir_conf: /home/ansible/.config/prometheus
+prometheus_dir_conf: /etc/prometheus
 prometheus_dir_data: /var/opt/prometheus_data
 prometheus_version: 3.14.0
 prometheus_user: prometheus
