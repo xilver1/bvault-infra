@@ -69,3 +69,10 @@
     state: started
     enabled: true
     daemon_reload: true
+
+- name: Ensure Grafana service is started and enabled
+  ansible.builtin.systemd:
+    name: grafana
+    state: started
+    enabled: true
+    daemon_reload: true

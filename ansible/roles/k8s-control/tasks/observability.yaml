@@ -30,7 +30,7 @@
       # Prevent crash loop in agent mode by removing rule_files which are invalid
       serverFiles:
         prometheus.yml:
-          rule_files: null
+          rule_files: []
       # The agent mode strictly collects and forwards metrics
       server:
         defaultFlagsOverride:
