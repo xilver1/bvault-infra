@@ -29,7 +29,8 @@
       prometheus-pushgateway: { enabled: false }
       # Prevent crash loop in agent mode by removing rule_files which are invalid
       serverFiles:
-        prometheus.yml: {}
+        prometheus.yml:
+          rule_files: null
       # The agent mode strictly collects and forwards metrics
       server:
         defaultFlagsOverride:
