@@ -48,19 +48,66 @@
     values:
       # Runs Alloy on every node (just like a DaemonSet) to grab all system logs
       alloy:
+        extraEnv:
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
         mounts:
           varlog: true
         # The configuration script (Alloy syntax) telling it to look for K8s logs and send them to Loki
         configMap:
           create: true
           content: |
-            local.file_match "kubernetes_pods" {
-              path_targets = [{"__address__" = "localhost", "__path__" = "/var/log/pods/*/*/*.log"}]
+            // Discover pods running ONLY on this specific node
+            discovery.kubernetes "pods" {
+              role = "pod"
+              selectors {
+                role  = "pod"
+                field = "spec.nodeName=" + sys.env("NODE_NAME")
+              }
             }
 
+            // Relabel to extract K8s metadata and synthesize the log file path
+            discovery.relabel "pod_logs" {
+              targets = discovery.kubernetes.pods.targets
+
+              rule {
+                source_labels = ["__meta_kubernetes_namespace"]
+                target_label  = "namespace"
+              }
+              rule {
+                source_labels = ["__meta_kubernetes_pod_name"]
+                target_label  = "pod"
+              }
+              rule {
+                source_labels = ["__meta_kubernetes_pod_container_name"]
+                target_label  = "container"
+              }
+              rule {
+                source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
+                target_label  = "app"
+              }
+              
+              // Synthesize the actual file path on disk
+              rule {
+                source_labels = ["__meta_kubernetes_namespace", "__meta_kubernetes_pod_name", "__meta_kubernetes_pod_uid", "__meta_kubernetes_pod_container_name"]
+                separator     = "_"
+                regex         = "([^_]+)_([^_]+)_([^_]+)_([^_]+)"
+                replacement   = "/var/log/pods/$1_$2_$3/$4/*.log"
+                target_label  = "__path__"
+              }
+            }
+
+            // Read the files identified by the relabeled targets
             loki.source.file "pod_logs" {
-              targets    = local.file_match.kubernetes_pods.targets
+              targets    = discovery.relabel.pod_logs.output
               forward_to = [loki.write.endpoint.receiver]
+              
+              // Enable glob pattern expansion for __path__ so *.log works
+              file_match {
+                enabled = true
+              }
             }
 
             loki.write "endpoint" {
