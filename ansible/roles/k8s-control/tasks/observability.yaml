@@ -49,6 +49,10 @@
     values:
       # Runs Alloy on every node (just like a DaemonSet) to grab all system logs
       alloy:
+        securityContext:
+          privileged: true
+          runAsUser: 0
+          runAsGroup: 0
         extraEnv:
           - name: NODE_NAME
             valueFrom:
@@ -104,11 +108,6 @@
             loki.source.file "pod_logs" {
               targets    = discovery.relabel.pod_logs.output
               forward_to = [loki.write.endpoint.receiver]
-              
-              // Enable glob pattern expansion for __path__ so *.log works
-              file_match {
-                enabled = true
-              }
             }
 
             loki.write "endpoint" {
