@@ -49,17 +49,7 @@
     owner: root
     group: grafana
     mode: "0640"
-    content: |
-      apiVersion: 1
-      datasources:
-        {% for ds in grafana_datasources %}
-        - name: {{ ds.name }}
-          type: {{ ds.type }}
-          access: {{ ds.access }}
-          url: {{ ds.url }}
-          isDefault: {{ ds.is_default | lower }}
-          editable: {{ ds.editable | lower }}
-        {% endfor %}
+    content: "{{ {'apiVersion': 1, 'datasources': grafana_datasources} | to_nice_yaml }}"
   become: true
   notify: restart grafana
 

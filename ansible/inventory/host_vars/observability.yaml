@@ -35,13 +35,13 @@ grafana_datasources:
     type: prometheus
     access: proxy
     url: http://127.0.0.1:9090
-    is_default: true
+    isDefault: true
     editable: false
   - name: Loki
     type: loki
     access: proxy
     url: http://127.0.0.1:3100
-    is_default: false
+    isDefault: false
     editable: false
 
 # Plugins to install
