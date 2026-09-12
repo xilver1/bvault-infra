@@ -8,7 +8,7 @@
 
 - name: Copy binaries to final destination
   ansible.builtin.copy:
-    src: "/tmp/tempo_{{ tempo_version }}_linux_amd64/{{ item }}"
+    src: "/tmp/{{ item }}"
     dest: "/usr/local/bin/{{ item }}"
     remote_src: true
     owner: root
