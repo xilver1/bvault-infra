@@ -51,6 +51,8 @@
     mode: "0640"
     content: "{{ {'apiVersion': 1, 'datasources': grafana_datasources} | to_nice_yaml }}"
   become: true
+  # Grafana parses provisioning/datasources/*.yaml only at startup, it has no filesystem watcher
+  notify: restart grafana
 
 - name: Provision alerts into Grafana
   ansible.builtin.copy:

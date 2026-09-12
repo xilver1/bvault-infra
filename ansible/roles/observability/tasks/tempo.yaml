@@ -69,3 +69,21 @@
     enabled: true
     state: started
     daemon_reload: true
+
+# Handlers normally run at the very end of the play, which would leave the check
+# below testing the *old* process. Force any pending restart to happen first.
+- name: Apply any pending Tempo restart before checking it
+  ansible.builtin.meta: flush_handlers
+
+- name: Wait for Tempo to accept connections
+  # Tempo parses its config strictly and exits on an unknown field, and systemd
+  # then restarts it forever. Without this the play reports success while Tempo
+  # crash-loops, and the first sign of trouble is Grafana Explore returning
+  # "connection refused" -- possibly days later.
+  ansible.builtin.wait_for:
+    host: 127.0.0.1
+    port: 3200
+    timeout: 60
+    msg: >-
+      Tempo is not listening on 3200. Check `journalctl -u tempo`; a config
+      parse error is the usual cause.

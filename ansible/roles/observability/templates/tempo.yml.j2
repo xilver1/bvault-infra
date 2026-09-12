@@ -24,12 +24,12 @@ distributor:
         http:
           endpoint: 0.0.0.0:4318
 
-ingester:
-  lifecycler:
-    ring:
-      kvstore:
-        store: inmemory
-      replication_factor: 1
+# There is deliberately no `ingester:` block. Tempo 3.0 removed the ingester
+# module outright -- along with `ingester_client`, `compactor` and
+# `metrics_generator_client` -- and monolithic mode now handles ingestion and
+# compaction internally, with no Kafka. Pasting a 2.x example back in here makes
+# Tempo exit on startup with "field ingester not found in type app.Config",
+# which systemd then crash-loops.
 
 storage:
   trace:
