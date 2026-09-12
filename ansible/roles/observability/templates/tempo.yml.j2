@@ -57,8 +57,11 @@ metrics_generator:
     remote_write:
       # Prometheus is local to this host, same as the Grafana datasource.
       - url: http://127.0.0.1:9090/api/v1/write
+        # Attaches a trace id to individual histogram samples, so a latency
+        # spike on a dashboard links straight to one slow request instead of
+        # leaving you to search Tempo by hand. Needs the matching
+        # --enable-feature=exemplar-storage on Prometheus, which the role sets.
         send_exemplars: true
-        # but Prometheus needs --enable-feature=exemplar-storage first.
   processor:
     span_metrics:
     service_graphs:
