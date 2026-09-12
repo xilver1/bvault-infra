@@ -43,12 +43,6 @@ grafana_datasources:
     url: http://127.0.0.1:3100
     isDefault: false
     editable: false
-  - name: Grafana_alert_manager
-    type: alertmanager
-    access: proxy
-    url: 127.0.0.1:3000
-    isDefault: false
-    editable: false
 
 # Plugins to install
 grafana_plugins:

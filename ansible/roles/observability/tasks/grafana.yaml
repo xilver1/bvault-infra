@@ -51,6 +51,15 @@
     mode: "0640"
     content: "{{ {'apiVersion': 1, 'datasources': grafana_datasources} | to_nice_yaml }}"
   become: true
+
+- name: Provision alerts into Grafana
+  ansible.builtin.copy:
+    src: files/grafana_rules/grafana.rules.yaml
+    dest: /etc/grafana/provisioning/alerting/grafana.rules.yaml
+    owner: root
+    group: grafana
+    mode: "0640"
+  become: true
   notify: restart grafana
 
 - name: Ensure Loki service is started and enabled
