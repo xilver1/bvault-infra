@@ -54,7 +54,7 @@
       User=root
       Group=grafana
       Type=simple
-      ExecStart=/usr/local/bin/tempo -config.file={{ tempo_dir }}/tempo.yml -target=all
+      ExecStart=/usr/local/bin/tempo -config.file={{ tempo_dir_conf }}/tempo.yml -target=all
       Restart=always
       RestartSec=5
 
