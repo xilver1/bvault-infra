@@ -1,5 +1,6 @@
 # Tempo
 tempo_dir_conf: /etc/tempo
+tempo_version: 3.0.3
 
 # Prometheus
 prometheus_dir_conf: /etc/prometheus
