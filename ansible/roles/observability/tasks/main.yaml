@@ -7,5 +7,9 @@
   ansible.builtin.import_tasks: grafana.yaml
   become: true
 
+- name: Install and configure tempo
+  ansible.builtin.import_tasks: tempo.yaml
+  become: true
+
 - name: Install and configure borgbackup
   ansible.builtin.import_tasks: backups.yaml

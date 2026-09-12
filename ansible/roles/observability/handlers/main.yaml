@@ -16,3 +16,8 @@
   ansible.builtin.service:
     name: loki
     state: restarted
+
+- name: restart tempo
+  ansible.builtin.systemd:
+    name: tempo
+    state: restarted

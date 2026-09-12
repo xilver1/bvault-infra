@@ -1,0 +1,60 @@
+---
+- name: Download and unpack Tempo binary
+  ansible.builtin.unarchive:
+    src: "https://github.com/grafana/tempo/releases/download/{{ tempo_version }}/tempo_{{ tempo_version }}_linux_amd64.tar.gz"
+    dest: /tmp
+    remote_src: true
+    creates: "/tmp/tempo_{{ tempo_version }}_linux_amd64"
+
+- name: Copy binaries to final destination
+  ansible.builtin.copy:
+    src: "/tmp/tempo_{{ tempo_version }}_linux_amd64/{{ item }}"
+    dest: "/usr/local/bin/{{ item }}"
+    remote_src: true
+    owner: root
+    group: grafana
+    mode: "0755"
+  loop:
+    - tempo
+    - tempo-cli
+    - tempo-query
+
+- name: Copy Tempo's monolithic config
+  ansible.builtin.template:
+    src: templates/tempo.yml.j2
+    dest: "{{ tempo_dir }}/tempo.yml"
+    owner: "{{ tempo_user }}"
+    group: "{{ tempo_user }}"
+    mode: "0644"
+  notify: Restart Tempo
+
+- name: Create the systemd service file for tempo
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/tempo.service
+    owner: root
+    group: grafana
+    mode: "0644"
+    content: |
+      [Unit]
+      Description=Grafana Tempo Monolithic Tracing Engine
+      Wants=network-online.target
+      After=network-online.target
+
+      [Service]
+      User=root
+      Group=grafana
+      Type=simple
+      ExecStart=/usr/local/bin/tempo -config.file={{ tempo_dir }}/tempo.yml -target=all
+      Restart=always
+      RestartSec=5
+
+      [Install]
+      WantedBy=multi-user.target
+  notify: restart tempo
+
+- name: Make sure Tempo's service is up and enabled
+  ansible.builtin.systemd:
+    name: tempo
+    enabled: true
+    state: started
+    daemon_reload: true

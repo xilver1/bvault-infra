@@ -1,3 +1,6 @@
+# Tempo
+tempo_dir_conf: /etc/tempo
+
 # Prometheus
 prometheus_dir_conf: /etc/prometheus
 prometheus_dir_data: /var/opt/prometheus_data
@@ -43,6 +46,15 @@ grafana_datasources:
     url: http://127.0.0.1:3100
     isDefault: false
     editable: false
+  - name: tempo
+    type: tempo
+    uid: tempo
+    access: proxy
+    url: http://127.0.0.1:3200
+    isDefault: false
+    version: 1
+    editable: false
+    basicAuth: false
 
 # Plugins to install
 grafana_plugins:
