@@ -36,7 +36,7 @@
     owner: root
     group: grafana
     mode: "0644"
-  notify: Restart Tempo
+  notify: restart tempo
 
 - name: Create the systemd service file for tempo
   ansible.builtin.copy:
