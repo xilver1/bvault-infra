@@ -41,16 +41,23 @@
     - prometheus
     - promtool
 
-- name: Move configuration files
+- name: Apply Prometheus configuration
   ansible.builtin.copy:
-    src: "/tmp/prometheus-{{ prometheus_version }}.linux-amd64/{{ item }}"
+    src: files/prometheus.yml
     dest: "{{ prometheus_dir_conf }}/"
-    remote_src: true
+    owner: "{{ prometheus_user }}"
+    group: "{{ prometheus_user }}"
+    mode: "0755"
+
+- name: Apply Prometheus defined rules
+  ansible.builtin.copy:
+    src: files/prometheus_rules/{{ item }}.yml
+    dest: "{{ prometheus_dir_conf }}/"
     owner: "{{ prometheus_user }}"
     group: "{{ prometheus_user }}"
     mode: "0755"
   loop:
-    - prometheus.yml
+    - prometheus.rules
 
 - name: Create systemd service file
   ansible.builtin.copy:

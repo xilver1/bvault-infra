@@ -1,0 +1,26 @@
+groups:
+  - name: infrastructure_alerts
+    rules:
+      - alert: InstanceDown
+        expr: up == 0
+        for: 5m
+        labels:
+          severity: critical
+          tier: backend
+        annotations:
+          summary: "Instance {{ $labels.instance }} is down"
+          description: "The host {{ $labels.instance }} has been unreachable for more than 5 minutes."
+
+      - alert: HostHighCpuLoad
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[2m])) * 100) > 80
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU load on {{ $labels.instance }}"
+          description: 'CPU usage is at {{ printf "%.2f" $value }}% for the last 10 minutes.'
+
+  - name: application_recording_rules
+    rules:
+      - record: job:http_requests_total:rate5m
+        expr: sum by (job) (rate(http_requests_total[5m]))
