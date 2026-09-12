@@ -1,7 +1,7 @@
 ---
 - name: Download and unpack Tempo binary
   ansible.builtin.unarchive:
-    src: "https://github.com/grafana/tempo/releases/download/{{ tempo_version }}/tempo_{{ tempo_version }}_linux_amd64.tar.gz"
+    src: "https://github.com/grafana/tempo/releases/download/v{{ tempo_version }}/tempo_{{ tempo_version }}_linux_amd64.tar.gz"
     dest: /tmp
     remote_src: true
     creates: "/tmp/tempo_{{ tempo_version }}_linux_amd64"
