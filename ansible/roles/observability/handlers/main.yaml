@@ -18,6 +18,7 @@
     state: restarted
 
 - name: restart tempo
+  become: true
   ansible.builtin.systemd:
     name: tempo
     state: restarted
