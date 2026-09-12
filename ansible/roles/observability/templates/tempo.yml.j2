@@ -1,14 +1,26 @@
+# {{ ansible_managed }}
+#
+# Grafana Tempo, monolithic mode (-target=all): distributor, ingester, querier
+# and compactor in one process, backed by local disk. That suits one household's
+# trace volume — the same reasoning that puts Prometheus and Loki on this host
+# rather than in the cluster.
+#
+# Traces arrive from the bvault Rust services over OTLP/HTTP on 4318.
+
 server:
   http_listen_port: 3200
 
-initializer:
-
+# Lets Grafana stream search results back as they're found instead of waiting
+# for the whole query to finish.
 stream_over_http_enabled: true
 
 distributor:
   receivers:
     otlp:
       protocols:
+        # HTTP/protobuf only. The services export over 4318 (no tonic/gRPC
+        # stack in their images); add a `grpc:` block here if something else
+        # ever needs 4317.
         http:
           endpoint: 0.0.0.0:4318
 
@@ -23,6 +35,6 @@ storage:
   trace:
     backend: local
     local:
-      path: /var/lib/tempo/traces
+      path: {{ tempo_dir_conf }}/traces
     wal:
-      path: /var/lib/tempo/wals
+      path: {{ tempo_dir_conf }}/wals
