@@ -8,6 +8,7 @@
     mode: "0755"
   loop:
     - "{{ tempo_dir_conf }}"
+    - "{{ tempo_dir_data }}"
 
 - name: Download and unpack Tempo binary
   ansible.builtin.unarchive:

@@ -1,5 +1,9 @@
 # Tempo
 tempo_dir_conf: /etc/tempo
+# Trace blocks, WAL and the metrics-generator WAL. Kept out of /etc, which is
+# for configuration — this grows without bound until compaction retention
+# kicks in. Same split as prometheus_dir_conf / prometheus_dir_data below.
+tempo_dir_data: /var/opt/tempo_data
 tempo_version: 3.0.3
 
 # Prometheus

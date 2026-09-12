@@ -35,6 +35,42 @@ storage:
   trace:
     backend: local
     local:
-      path: {{ tempo_dir_conf }}/traces
+      path: {{ tempo_dir_data }}/traces
     wal:
-      path: {{ tempo_dir_conf }}/wals
+      path: {{ tempo_dir_data }}/wals
+
+# Derives RED metrics and a service graph from the spans Tempo already receives,
+# then remote-writes them into the Prometheus on this same host — which is why
+# its unit already carries --web.enable-remote-write-receiver.
+#
+# This is what answers "is the service working well?" without reading traces by
+# hand: rate, error rate and latency per service and per endpoint, plus an edge
+# for every call between services.
+metrics_generator:
+  registry:
+    # Marks these series as inferred by Tempo, so a dashboard can tell them
+    # apart from anything Prometheus scraped directly.
+    external_labels:
+      source: tempo
+  storage:
+    path: {{ tempo_dir_data }}/generator/wal
+    remote_write:
+      # Prometheus is local to this host, same as the Grafana datasource.
+      - url: http://127.0.0.1:9090/api/v1/write
+        send_exemplars: true
+        # but Prometheus needs --enable-feature=exemplar-storage first.
+  processor:
+    span_metrics:
+    service_graphs:
+
+# Processors are off by default, and configured per tenant. Tempo runs
+# single-tenant here, so the defaults block is the whole configuration.
+#
+# service-graphs pairs an outgoing span with the incoming span it parents —
+# client with server, and producer with consumer, which is how the jobs-table
+# hop between gateway and analysis-worker becomes an edge. span-metrics emits
+# traces_spanmetrics_* keyed on service, span name, span kind and status code.
+overrides:
+  defaults:
+    metrics_generator:
+      processors: [service-graphs, span-metrics]

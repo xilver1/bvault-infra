@@ -66,7 +66,8 @@
       ExecStart=/usr/local/bin/prometheus \
         --config.file={{ prometheus_dir_conf }}/prometheus.yml \
         --storage.tsdb.path={{ prometheus_dir_data }}/ \
-        --web.enable-remote-write-receiver
+        --web.enable-remote-write-receiver \
+        --enable-feature=exemplar-storage
 
       [Install]
       WantedBy=multi-user.target
